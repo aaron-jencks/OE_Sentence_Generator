@@ -5,8 +5,8 @@ case_list: List[str] = ['oblique', 'genitive', 'dative', 'accusative', 'nominati
 plurality_list: List[str] = ['singular', 'plural']
 
 person_list: List[str] = ['first-person', 'second-person', 'third-person']
-tense: List[str] = ['past', 'present', 'preterite']
-mood: List[str] = ['indicative', 'imperative', 'subjunctive', 'participle']
+tense: List[str] = ['past', 'present']
+mood: List[str] = ['indicative', 'imperative', 'subjunctive']
 
 cases = r'(oblique|genitive|dative|accusative|nominative|instrumental|gen|acc|nom)'
 case_capture = r'(?P<cases>{0}((/| ){0})*)'.format(cases)
