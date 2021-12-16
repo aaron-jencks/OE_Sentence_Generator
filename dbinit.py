@@ -41,7 +41,7 @@ def initialize_database():
         lines = fp.read().decode('utf8').split('\n')
         tuples = []
         declensions = []
-        conjugations = []
+        conjugations: List[Tuple[str, str, str, str, str, bool, bool]] = []
         for li, line in enumerate(tqdm(lines[:-1])):
             j = json.loads(line)
             if 'forms' not in j:
@@ -161,7 +161,7 @@ def insert_declensions(declensions: List[Tuple[str, str, str]]):
     cont.insert_record('declensions', tuples)
 
 
-def insert_verb_conjugations(conjugations: List[Tuple[str, str, str, str, bool, bool]]):
+def insert_verb_conjugations(conjugations: List[Tuple[str, str, str, str, str, bool, bool]]):
     cont = SQLController.get_instance()
 
     debug('Inserting Verb Conjugation Table')
