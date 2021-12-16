@@ -1,6 +1,7 @@
 from controllers.sql import SQLController
 from controllers.ui import debug, error
 from utils.grammar import noun_declensions, case_list, plurality_list
+from settings import old_english_word_json, modern_english_word_json
 
 import json
 from settings import data_path
@@ -19,7 +20,7 @@ def initialize_database():
     cont.reset_database()
 
     # debug('Reading English Words')
-    # with open(path.join(data_path, 'kaikki.org-dictionary-English.json'), 'rb') as fp:
+    # with open(modern_english_word_json, 'rb') as fp:
     #     lines = fp.read().decode('utf8').split('\n')
     #     tuples = []
     #     for li, line in enumerate(tqdm(lines[:-1])):
@@ -36,7 +37,7 @@ def initialize_database():
     #     cont.insert_record('english_words', tuples)
 
     debug('Reading Old English Words')
-    with open(path.join(data_path, 'kaikki.org-dictionary-OldEnglish.json'), 'rb') as fp:
+    with open(old_english_word_json, 'rb') as fp:
         lines = fp.read().decode('utf8').split('\n')
         tuples = []
         declensions = []
