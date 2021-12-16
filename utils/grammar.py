@@ -4,6 +4,10 @@ from typing import List
 case_list: List[str] = ['oblique', 'genitive', 'dative', 'accusative', 'nominative', 'instrumental']
 plurality_list: List[str] = ['singular', 'plural']
 
+person_list: List[str] = ['first-person', 'second-person', 'third-person']
+tense: List[str] = ['past', 'present', 'preterite']
+mood: List[str] = ['indicative', 'imperative', 'subjunctive', 'participle']
+
 cases = r'(oblique|genitive|dative|accusative|nominative|instrumental|gen|acc|nom)'
 case_capture = r'(?P<cases>{0}((/| ){0})*)'.format(cases)
 plurality = r'(?P<plurality>(singular|plural)(/(singular|plural))*)'
