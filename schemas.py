@@ -34,7 +34,8 @@ person text,
 plurality text,
 mood text,
 tense text,
-conjugation text not null,
+participle bool not null,
+preterite bool not null,
 foreign key (word) references old_english_words(id)
 );
 '''
