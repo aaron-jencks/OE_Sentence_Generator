@@ -72,6 +72,6 @@ record_typing = {
     'english_words': '(name, pos, definition, wiktionary_entry, is_conjugation)',
     'old_english_words': '(name, pos, definition, wiktionary_entry, is_conjugation)',
     'translations': '(ne, oe)',
-    'conjugations': '(word, person, plurality, mood, tense, participle, preterite)',
-    'declensions': '(word, plurality, declension)'
+    'conjugations': '(word, origin, person, plurality, mood, tense, participle, preterite)',
+    'declensions': '(word, origin, plurality, declension)'
 }

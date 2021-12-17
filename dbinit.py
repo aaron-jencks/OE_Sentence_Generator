@@ -1,6 +1,6 @@
 from controllers.sql import SQLController
 from controllers.ui import debug, error
-from utils.grammar import noun_declensions, case_list, plurality_list, person_list, tense, mood
+from utils.grammar import case_list, plurality_list, person_list, tense, mood
 from settings import old_english_word_json, modern_english_word_json
 
 import json
@@ -41,7 +41,7 @@ def initialize_database():
         lines = fp.read().decode('utf8').split('\n')
         tuples = []
         declensions = []
-        conjugations: List[Tuple[str, str, str, str, str, bool, bool]] = []
+        conjugations: List[Tuple[str, str, str, str, str, str, bool, bool]] = []
         for li, line in enumerate(tqdm(lines[:-1])):
             j = json.loads(line)
             if 'forms' not in j:
@@ -61,13 +61,15 @@ def initialize_database():
                         for c, p in cases:
                             for f in sense['form_of']:
                                 # debug('{} is the {} {} form of {}'.format(name, c, p, f['word']))
-                                declensions.append((f['word'], c, p))
+                                for n in name:
+                                    declensions.append((n, f['word'], c, p))
                     # Detect Conjugations
                     elif j['pos'] == 'verb':
                         conjs = find_verb_conjugations(sense['tags'])
                         for per, pl, t, m, part, pre in conjs:
                             for f in sense['form_of']:
-                                conjugations.append((f['word'], per, pl, t, m, part, pre))
+                                for n in name:
+                                    conjugations.append((n, f['word'], per, pl, t, m, part, pre))
                 definition = '"{}"'.format(
                     ('. '.join(sense['glosses']) if 'glosses' in sense else '').replace('"', "'"))
                 for n in name:
@@ -129,11 +131,11 @@ def find_verb_conjugations(sense: List[str]) -> List[Tuple[str, str, str, str, b
     return tuples
 
 
-def insert_declensions(declensions: List[Tuple[str, str, str]]):
+def insert_declensions(declensions: List[Tuple[str, str, str, str]]):
     cont = SQLController.get_instance()
 
     debug('Inserting Noun Declension Table')
-    words = list(set(['"{}"'.format(d[0].replace('"', "'")) for d in declensions]))
+    words = list(set(['"{}"'.format(d[1].replace('"', "'")) for d in declensions] + [d[0] for d in declensions]))
     where_clause = 'name in ({})'.format(','.join(words)) if len(words) > 1 else 'name = {}'.format(words[0])
     indices = cont.select_conditional('old_english_words', 'id, name, pos', where_clause)
 
@@ -152,20 +154,23 @@ def insert_declensions(declensions: List[Tuple[str, str, str]]):
 
     debug('linking...')
     tuples = []
-    for w, p, c in declensions:
+    for o, w, p, c in declensions:
         if w in index_dict:
-            tuples.append((index_dict[w], '"{}"'.format(p), '"{}"'.format(c)))
+            if o in index_dict:
+                tuples.append((index_dict[w], index_dict[o], '"{}"'.format(p), '"{}"'.format(c)))
+            else:
+                debug('{} was not found to be a root word'.format(o))
         else:
             debug('{} was not found to be a root word'.format(w))
 
     cont.insert_record('declensions', tuples)
 
 
-def insert_verb_conjugations(conjugations: List[Tuple[str, str, str, str, str, bool, bool]]):
+def insert_verb_conjugations(conjugations: List[Tuple[str, str, str, str, str, str, bool, bool]]):
     cont = SQLController.get_instance()
 
     debug('Inserting Verb Conjugation Table')
-    words = list(set(['"{}"'.format(d[0].replace('"', "'")) for d in conjugations]))
+    words = list(set(['"{}"'.format(d[1].replace('"', "'")) for d in conjugations] + [d[0] for d in conjugations]))
     where_clause = 'name in ({})'.format(','.join(words)) if len(words) > 1 else 'name = {}'.format(words[0])
     indices = cont.select_conditional('old_english_words', 'id, name, pos', where_clause)
 
@@ -184,11 +189,14 @@ def insert_verb_conjugations(conjugations: List[Tuple[str, str, str, str, str, b
 
     debug('linking...')
     tuples = []
-    for w, per, pl, t, m, pt, pr in conjugations:
+    for o, w, per, pl, t, m, pt, pr in conjugations:
         if w in index_dict:
-            tuples.append((index_dict[w],
-                           '"{}"'.format(per), '"{}"'.format(pl), '"{}"'.format(t), '"{}"'.format(m),
-                           1 if pt else 0, 1 if pr else 0))
+            if o in index_dict:
+                tuples.append((index_dict[w], index_dict[o],
+                               '"{}"'.format(per), '"{}"'.format(pl), '"{}"'.format(t), '"{}"'.format(m),
+                               1 if pt else 0, 1 if pr else 0))
+            else:
+                debug('{} was not found to be a root verb'.format(o))
         else:
             debug('{} was not found to be a root verb'.format(w))
 
