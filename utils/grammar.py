@@ -1,5 +1,6 @@
-from typing import List
+from typing import List, Tuple
 import enum
+import random as rng
 
 from controllers.sql import SQLController
 from controllers.ui import debug
@@ -74,22 +75,66 @@ class Noun:
         self.case: Case = Case.ROOT
         self.plurality: Plurality = Plurality.NONE
 
+    def __repr__(self) -> str:
+        return '{} {} {}'.format(self.root, self.case.name.lower(), self.plurality.name.lower())
+
+    @property
+    def index(self) -> int:
+        cont = SQLController.get_instance()
+
+        indices = cont.select_conditional('old_english_words', 'id',
+                                          'name = "{}" and pos = "noun"'.format(self.root))
+
+        if len(indices) > 1:
+            debug('Multiple indices found for root {} with indices {} and {}, using the first'.format(self.root,
+                                                                                                      indices[0][0],
+                                                                                                      indices[1][0])
+                  )
+        elif len(indices) == 0:
+            debug('No index found for {}'.format(self.root))
+            return -1
+
+        return indices[0][0]
+
     def get_declension(self) -> str:
         cont = SQLController.get_instance()
 
         if self.case == Case.ROOT:
             return self.root
         else:
-            indices = cont.select_conditional('old_english_words', 'id',
-                                              'name = "{}" and pos = "noun"'.format(self.root))
+            declensions = cont.select_conditional('conjugations', 'word',
+                                                  'origin = {} and declension = "{}"{}'.format(self.case.name.lower(),
+                                                                                               self.index,
+                                                                                               ' and "{}"'.format(
+                                                                                                    self.plurality.name.lower())
+                                                                                               if self.plurality != Plurality.NONE else
+                                                                                               ''))
 
-            if len(indices) > 1:
-                debug('Multiple indices found for root {} with indices {} and {}, using the first'.format(self.root,
-                                                                                                          indices[0][0],
-                                                                                                          indices[1][0])
-                      )
+            if len(declensions) > 1:
+                debug('Multiple declensions for {} in {} {} '
+                      'form found with indices {} and {}, using the first'.format(self.root,
+                                                                                  self.case.name.lower(),
+                                                                                  self.plurality.name.lower(),
+                                                                                  declensions[0][0],
+                                                                                  declensions[1][0]))
+            elif len(declensions) == 0:
+                debug('No word found for {} in the {} {}'.format(self.root,
+                                                                 self.case.name.lower(), self.plurality.name.lower()))
+                return self.root
 
-            index = indices[0][0]
-            declensions = cont.select_conditional('')
+            declension_index = declensions[0][0]
+
+            return cont.select_conditional('old_english_words', 'name', 'id = {}'.format(declension_index))[0][0]
+
+    def get_possible_declensions(self) -> List[Tuple[Case, Plurality]]:
+        cont = SQLController.get_instance()
+        declensions = cont.select_conditional('declensions', 'plurality, declension', 'origin = {}'.format(self.index))
+        return [(Case.ROOT, Plurality.NONE)] + [(Case[c.upper()], Plurality[p.upper()]) for p, c in declensions]
+
+    @staticmethod
+    def get_random_word():
+        cont = SQLController.get_instance()
+        possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "noun"')
+        return Noun(rng.choice(possible_words)[0])
 
 
