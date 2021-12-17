@@ -64,10 +64,10 @@ def initialize_database():
                                 declensions.append((f['word'], c, p))
                     # Detect Conjugations
                     elif j['pos'] == 'verb':
-                        conj = find_verb_conjugations(sense['tags'])
-                        for c in conj:
+                        conjs = find_verb_conjugations(sense['tags'])
+                        for per, pl, t, m, part, pre in conjs:
                             for f in sense['form_of']:
-                                conjugations.append((f['word'], *c))
+                                conjugations.append((f['word'], per, pl, t, m, part, pre))
                 definition = '"{}"'.format(
                     ('. '.join(sense['glosses']) if 'glosses' in sense else '').replace('"', "'"))
                 for n in name:
@@ -188,7 +188,7 @@ def insert_verb_conjugations(conjugations: List[Tuple[str, str, str, str, str, b
         if w in index_dict:
             tuples.append((index_dict[w],
                            '"{}"'.format(per), '"{}"'.format(pl), '"{}"'.format(t), '"{}"'.format(m),
-                           pt, pr))
+                           1 if pt else 0, 1 if pr else 0))
         else:
             debug('{} was not found to be a root verb'.format(w))
 
