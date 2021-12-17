@@ -154,7 +154,7 @@ def insert_declensions(declensions: List[Tuple[str, str, str, str]]):
 
     debug('linking...')
     tuples = []
-    for o, w, p, c in declensions:
+    for o, w, c, p in declensions:
         if w in index_dict:
             orig = o[1:-1]
             if orig in index_dict:

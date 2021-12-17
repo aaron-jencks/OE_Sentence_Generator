@@ -2,7 +2,7 @@ from controllers.sql import SQLController
 from utils.grammar import Case, Plurality
 from controllers.ui import debug
 
-from typing import List
+from typing import List, Tuple
 import random as rng
 
 
@@ -73,5 +73,5 @@ class Noun:
     @staticmethod
     def get_random_word():
         cont = SQLController.get_instance()
-        possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "noun"')
+        possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "noun" and is_conjugation = 0')
         return Noun(rng.choice(possible_words)[0])
