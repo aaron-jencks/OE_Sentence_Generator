@@ -156,8 +156,9 @@ def insert_declensions(declensions: List[Tuple[str, str, str, str]]):
     tuples = []
     for o, w, p, c in declensions:
         if w in index_dict:
-            if o in index_dict:
-                tuples.append((index_dict[w], index_dict[o], '"{}"'.format(p), '"{}"'.format(c)))
+            orig = o[1:-1]
+            if orig in index_dict:
+                tuples.append((index_dict[w], index_dict[orig], '"{}"'.format(p), '"{}"'.format(c)))
             else:
                 debug('{} was not found to be a root word'.format(o))
         else:
@@ -191,8 +192,9 @@ def insert_verb_conjugations(conjugations: List[Tuple[str, str, str, str, str, s
     tuples = []
     for o, w, per, pl, t, m, pt, pr in conjugations:
         if w in index_dict:
-            if o in index_dict:
-                tuples.append((index_dict[w], index_dict[o],
+            orig = o[1:-1]
+            if orig in index_dict:
+                tuples.append((index_dict[w], index_dict[orig],
                                '"{}"'.format(per), '"{}"'.format(pl), '"{}"'.format(t), '"{}"'.format(m),
                                1 if pt else 0, 1 if pr else 0))
             else:
