@@ -1,6 +1,7 @@
 from controllers.sql import SQLController
 from utils.grammar import Case, Plurality
 from controllers.ui import debug
+from grammar.restrictions import WordRestriction
 
 from typing import List, Tuple
 import random as rng
@@ -71,7 +72,9 @@ class Noun:
         return [(Case.ROOT, Plurality.NONE)] + [(Case[c.upper()], Plurality[p.upper()]) for p, c in declensions]
 
     @staticmethod
-    def get_random_word():
+    def get_random_word(restrictions: List[WordRestriction]):
         cont = SQLController.get_instance()
-        possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "noun" and is_conjugation = 0')
+        constraint_string = 'pos = "noun" and is_conjugation = 0' + \
+                            ' and '.join([r.get_sql_constraint() for r in restrictions])
+        possible_words = cont.select_conditional('old_english_words', 'name', constraint_string)
         return Noun(rng.choice(possible_words)[0])
