@@ -63,3 +63,7 @@ class Gender(enum.Enum):
     MASCULINE = 0
     FEMININE = 1
     NEUTER = 2
+
+
+def is_heavy(w: str) -> bool:
+
