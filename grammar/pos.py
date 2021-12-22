@@ -1,5 +1,5 @@
 from controllers.sql import SQLController
-from utils.grammar import Case, Plurality
+from utils.grammar import Case, Plurality, Gender, Masculine
 from controllers.ui import debug
 from grammar.restrictions import WordRestriction
 
@@ -12,6 +12,7 @@ class Noun:
         self.root = root
         self.case: Case = Case.ROOT
         self.plurality: Plurality = Plurality.NONE
+        self.gender: Gender = Masculine()
 
     def __repr__(self) -> str:
         return '{} {} {}'.format(self.root, self.case.name.lower(), self.plurality.name.lower())
