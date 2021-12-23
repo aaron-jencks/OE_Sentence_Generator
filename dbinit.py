@@ -70,9 +70,7 @@ def initialize_database():
                             found = False
                             for s in j['sounds']:
                                 if 'ipa' in s:
-                                    syllables = separate_syllables(s['ipa'])
-                                    print(len(syllables))
-                                    print(s['ipa'])
+                                    syllables = separate_syllables([s['ipa']])
                                     for n in name:
                                         noun_ipa.append((n, str(s['ipa']),
                                                          len(syllables),
