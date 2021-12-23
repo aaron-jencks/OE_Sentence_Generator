@@ -205,7 +205,7 @@ def insert_ipa(declensions: List[Tuple[str, str, int, bool]]):
             index_dict[name] = index
             pos_dict[name] = pos
         elif pos == 'noun':
-            debug('Possible ambiguous declension of {} as a {} and {}'.format(name, pos, pos_dict[name]))
+            debug('Possible ambiguous pos of {} as a {} and {}'.format(name, pos, pos_dict[name]))
 
     debug('linking...')
     tuples = []
