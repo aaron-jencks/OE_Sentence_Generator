@@ -66,7 +66,7 @@ foreign key (word) references old_english_words(id)
 ipa_schemas = '''ipa (
 id integer primary key,
 word integer not null,
-ipa text not null,
+ipa_text text not null,
 syllable_count integer not null,
 heavy bool not null,
 foreign key (word) references old_english_words(id)
@@ -96,5 +96,5 @@ record_typing = {
     'conjugations': '(word, origin, person, plurality, mood, tense, participle, preterite)',
     'declensions': '(word, origin, plurality, declension)',
     'nouns': '(word, proto_germanic, stem_type, gender)',
-    'ipa': '(word, ipa, syllable_count)'
+    'ipa': '(word, ipa_text, syllable_count, heavy)'
 }

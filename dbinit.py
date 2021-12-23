@@ -190,7 +190,7 @@ def insert_ipa(declensions: List[Tuple[str, str, int, bool]]):
     cont = SQLController.get_instance()
 
     debug('Inserting Noun IPA Table')
-    words = list(set(['"{}"'.format(d[1].replace('"', "'")) for d in declensions]))
+    words = list(set([d[0] for d in declensions]))
     where_clause = 'name in ({})'.format(','.join(words)) if len(words) > 1 else 'name = {}'.format(words[0])
     indices = cont.select_conditional('old_english_words', 'id, name, pos', where_clause)
 
@@ -210,12 +210,13 @@ def insert_ipa(declensions: List[Tuple[str, str, int, bool]]):
     debug('linking...')
     tuples = []
     for w, t, c, p in declensions:
+        w = w[1:-1]
         if w in index_dict:
-            tuples.append((index_dict[w], t, c, 1 if p else 0))
+            tuples.append(('"{}"'.format(index_dict[w]), '"{}"'.format(t.replace('"', "'")), c, 1 if p else 0))
         else:
             debug('{} was not found to be a root word'.format(w))
 
-    cont.insert_record('declensions', tuples)
+    cont.insert_record('ipa', tuples)
 
 
 def insert_verb_conjugations(conjugations: List[Tuple[str, str, str, str, str, str, bool, bool]]):
