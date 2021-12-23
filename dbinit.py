@@ -43,6 +43,7 @@ def initialize_database():
         declensions = []
         conjugations: List[Tuple[str, str, str, str, str, str, bool, bool]] = []
         noun_ipa: List[Tuple[str, str, int, bool]] = []
+        noun_germ: List[Tuple[str, str]] = []
         for li, line in enumerate(tqdm(lines[:-1])):
             j = json.loads(line)
             if 'forms' not in j:
@@ -80,6 +81,20 @@ def initialize_database():
                                 debug('No ipa translation found for {}'.format(j['word']))
                         else:
                             debug('No sounds found for {}'.format(j['word']))
+
+                        # Detect proto-germanic
+                        if 'etymology_templates' in j:
+                            for temp in j['etymology_templates']:
+                                if temp['name'] == 'inh':
+                                    # The word was inherited
+                                    args = temp['args']
+                                    if args['2'] == 'gem-pro':
+                                        # And it was inherited from proto germanic
+                                        proto = args['3']
+                                        for n in name:
+                                            noun_germ.append((n, proto))
+                        else:
+                            debug('{} is an OE innovation'.format(j['word']))
 
                     # Detect Conjugations
                     elif j['pos'] == 'verb':
@@ -217,6 +232,39 @@ def insert_ipa(declensions: List[Tuple[str, str, int, bool]]):
             debug('{} was not found to be a root word'.format(w))
 
     cont.insert_record('ipa', tuples)
+
+
+def insert_proto(declensions: List[Tuple[str, str]]):
+    cont = SQLController.get_instance()
+
+    debug('Inserting Noun IPA Table')
+    words = list(set([d[0] for d in declensions]))
+    where_clause = 'name in ({})'.format(','.join(words)) if len(words) > 1 else 'name = {}'.format(words[0])
+    indices = cont.select_conditional('old_english_words', 'id, name, pos', where_clause)
+
+    debug('Generating foreign key dictionary')
+    pos_dict = {}
+    index_dict = {}
+    for index, name, pos in indices:
+        if name not in index_dict:
+            index_dict[name] = index
+            pos_dict[name] = pos
+        elif pos == 'noun' and pos_dict[name] != 'noun':
+            index_dict[name] = index
+            pos_dict[name] = pos
+        elif pos == 'noun':
+            debug('Possible ambiguous pos of {} as a {} and {}'.format(name, pos, pos_dict[name]))
+
+    debug('linking...')
+    tuples = []
+    for w, t in declensions:
+        w = w[1:-1]
+        if w in index_dict:
+            tuples.append(('"{}"'.format(index_dict[w]), '"{}"'.format(t.replace('"', "'"))))
+        else:
+            debug('{} was not found to be a root word'.format(w))
+
+    cont.insert_record('nouns', tuples)
 
 
 def insert_verb_conjugations(conjugations: List[Tuple[str, str, str, str, str, str, bool, bool]]):
