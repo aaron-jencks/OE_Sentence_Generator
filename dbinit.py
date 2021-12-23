@@ -43,14 +43,14 @@ def initialize_database():
         declensions = []
         conjugations: List[Tuple[str, str, str, str, str, str, bool, bool]] = []
         noun_ipa: List[Tuple[str, str, int, bool]] = []
-        noun_germ: List[Tuple[str, str]] = []
+        noun_germ: List[Tuple[str, str, str]] = []
         for li, line in enumerate(tqdm(lines[:-1])):
             j = json.loads(line)
             if 'forms' not in j:
                 # error('{} has no forms!'.format(j['word']))
                 name = ['"{}"'.format(j['word'].replace('"', "'"))]
             else:
-                name = ['"{}"'.format(w['form'].replace('"', "'")) for w in j['forms']]
+                name = ['"{}"'.format(w['form'].replace('"', "'")) for w in j['forms'] if 'canonical' in w['tags']]
             pos = '"{}"'.format(j['pos'].replace('"', "'"))
             for sense in j['senses']:
                 conj = True
