@@ -5,7 +5,7 @@ from controllers.ui import debug, error
 from settings import old_english_word_json
 
 
-def load_words_and_objects(selection_criteria: str) -> List[object]:
+def load_words_and_objects(selection_criteria: str) -> List[dict]:
     cont = SQLController.get_instance()
 
     debug('Loading wiktionary lines')
@@ -31,3 +31,24 @@ def extract_tags(json_objects: List[dict]) -> List[List[str]]:
             else:
                 error('{} has no tags list'.format(obj['word']))
     return tags
+
+
+def extract_ipa(json_objects: List[dict]) -> List[str]:
+    ipa = []
+    for w in json_objects:
+        if 'sounds' in w:
+            found = False
+            for s in w['sounds']:
+                if 'ipa' in s:
+                    ipa.append(s['ipa'])
+                    found = True
+            if not found:
+                debug('No ipa translation found for {}'.format(w['word']))
+        else:
+            debug('No sounds found for {}'.format(w['word']))
+    return ipa
+
+
+def load_ipa(selection_criteria: str) -> List[str]:
+    words = load_words_and_objects(selection_criteria)
+    return extract_ipa(words)

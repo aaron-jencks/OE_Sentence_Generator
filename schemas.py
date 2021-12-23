@@ -59,9 +59,18 @@ word integer not null,
 proto_germanic text,
 stem_type text,
 gender text,
-foreign key (word) references old_english_words(id),
+foreign key (word) references old_english_words(id)
 );
 '''
+
+ipa_schemas = '''ipa (
+id integer primary key,
+word integer not null,
+ipa text not null,
+syllable_count integer not null,
+heavy bool not null,
+foreign key (word) references old_english_words(id)
+);'''
 
 
 schemas = [
@@ -70,7 +79,8 @@ schemas = [
     translations_schemas,
     conjugations_schemas,
     declensions_schemas,
-    nouns_schemas
+    nouns_schemas,
+    ipa_schemas
 ]
 
 triggers = [
@@ -85,5 +95,6 @@ record_typing = {
     'translations': '(ne, oe)',
     'conjugations': '(word, origin, person, plurality, mood, tense, participle, preterite)',
     'declensions': '(word, origin, plurality, declension)',
-    'nouns': '(word, proto_germanic, stem_type, gender)'
+    'nouns': '(word, proto_germanic, stem_type, gender)',
+    'ipa': '(word, ipa, syllable_count)'
 }

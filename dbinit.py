@@ -1,6 +1,6 @@
 from controllers.sql import SQLController
 from controllers.ui import debug, error
-from utils.grammar import case_list, plurality_list, person_list, tense, mood
+from utils.grammar import case_list, plurality_list, person_list, tense, mood, long_syllable, separate_syllables
 from settings import old_english_word_json, modern_english_word_json
 
 import json
@@ -42,6 +42,7 @@ def initialize_database():
         tuples = []
         declensions = []
         conjugations: List[Tuple[str, str, str, str, str, str, bool, bool]] = []
+        noun_ipa: List[Tuple[str, str, int, bool]] = []
         for li, line in enumerate(tqdm(lines[:-1])):
             j = json.loads(line)
             if 'forms' not in j:
@@ -63,6 +64,25 @@ def initialize_database():
                                 # debug('{} is the {} {} form of {}'.format(name, c, p, f['word']))
                                 for n in name:
                                     declensions.append((n, f['word'], c, p))
+
+                        # Find IPA for manual declension
+                        if 'sounds' in j:
+                            found = False
+                            for s in j['sounds']:
+                                if 'ipa' in s:
+                                    syllables = separate_syllables(s['ipa'])
+                                    print(len(syllables))
+                                    print(s['ipa'])
+                                    for n in name:
+                                        noun_ipa.append((n, str(s['ipa']),
+                                                         len(syllables),
+                                                         bool(re.fullmatch(long_syllable, syllables[-1]) is not None)))
+                                    found = True
+                            if not found:
+                                debug('No ipa translation found for {}'.format(j['word']))
+                        else:
+                            debug('No sounds found for {}'.format(j['word']))
+
                     # Detect Conjugations
                     elif j['pos'] == 'verb':
                         conjs = find_verb_conjugations(sense['tags'])
@@ -76,9 +96,10 @@ def initialize_database():
                     tuples.append((n, pos, definition, li, conj))
         cont.insert_record('old_english_words', tuples)
 
-        # Insert Declensions
+        # Insert Linking Tables
         insert_declensions(declensions)
         insert_verb_conjugations(conjugations)
+        insert_ipa(noun_ipa)
 
 
 def find_declensions(sense: List[str]) -> List[Tuple[str, str]]:
@@ -161,6 +182,38 @@ def insert_declensions(declensions: List[Tuple[str, str, str, str]]):
                 tuples.append((index_dict[w], index_dict[orig], '"{}"'.format(p), '"{}"'.format(c)))
             else:
                 debug('{} was not found to be a root word'.format(o))
+        else:
+            debug('{} was not found to be a root word'.format(w))
+
+    cont.insert_record('declensions', tuples)
+
+
+def insert_ipa(declensions: List[Tuple[str, str, int, bool]]):
+    cont = SQLController.get_instance()
+
+    debug('Inserting Noun IPA Table')
+    words = list(set(['"{}"'.format(d[1].replace('"', "'")) for d in declensions]))
+    where_clause = 'name in ({})'.format(','.join(words)) if len(words) > 1 else 'name = {}'.format(words[0])
+    indices = cont.select_conditional('old_english_words', 'id, name, pos', where_clause)
+
+    debug('Generating foreign key dictionary')
+    pos_dict = {}
+    index_dict = {}
+    for index, name, pos in indices:
+        if name not in index_dict:
+            index_dict[name] = index
+            pos_dict[name] = pos
+        elif pos == 'noun' and pos_dict[name] != 'noun':
+            index_dict[name] = index
+            pos_dict[name] = pos
+        elif pos == 'noun':
+            debug('Possible ambiguous declension of {} as a {} and {}'.format(name, pos, pos_dict[name]))
+
+    debug('linking...')
+    tuples = []
+    for w, t, c, p in declensions:
+        if w in index_dict:
+            tuples.append((index_dict[w], t, c, 1 if p else 0))
         else:
             debug('{} was not found to be a root word'.format(w))
 
