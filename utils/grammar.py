@@ -19,7 +19,7 @@ tense: List[str] = ['past', 'present']
 mood: List[str] = ['indicative', 'imperative', 'subjunctive']
 
 strength: List[str] = ['strong', 'weak']
-gender: List[str] = ['masculine', 'feminine', 'neuter']
+gender_list: List[str] = ['masculine', 'feminine', 'neuter']
 
 syllable_separators = re.compile(r'[ˌ.,ˈ\']')
 vowel_pattern = r'(([ɑouiIəeaɛæyø∅]|o̯|ɑ̯)(͜([ɑouiIəeaɛæyø∅]|o̯|ɑ̯))?[:ː]?)'

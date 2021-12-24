@@ -57,7 +57,6 @@ nouns_schemas = '''nouns (
 id integer primary key,
 word integer not null,
 proto_germanic text,
-stem_type text,
 gender text,
 foreign key (word) references old_english_words(id)
 );
@@ -95,6 +94,6 @@ record_typing = {
     'translations': '(ne, oe)',
     'conjugations': '(word, origin, person, plurality, mood, tense, participle, preterite)',
     'declensions': '(word, origin, plurality, declension)',
-    'nouns': '(word, proto_germanic, stem_type, gender)',
+    'nouns': '(word, proto_germanic, gender)',
     'ipa': '(word, ipa_text, syllable_count, heavy)'
 }

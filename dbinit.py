@@ -1,6 +1,7 @@
 from controllers.sql import SQLController
 from controllers.ui import debug, error
-from utils.grammar import case_list, plurality_list, person_list, tense, mood, long_syllable, separate_syllables
+from utils.grammar import case_list, plurality_list, person_list, tense, mood, \
+    long_syllable, separate_syllables, Gender, gender_list
 from settings import old_english_word_json, modern_english_word_json
 
 import json
@@ -43,15 +44,32 @@ def initialize_database():
         declensions = []
         conjugations: List[Tuple[str, str, str, str, str, str, bool, bool]] = []
         noun_ipa: List[Tuple[str, str, int, bool]] = []
-        noun_germ: List[Tuple[str, str, str]] = []
+        noun_germ: List[Tuple[str, str, Gender]] = []
         for li, line in enumerate(tqdm(lines[:-1])):
             j = json.loads(line)
+
+            pos = '"{}"'.format(j['pos'].replace('"', "'"))
+
+            genders: List[Gender] = []
             if 'forms' not in j:
                 # error('{} has no forms!'.format(j['word']))
                 name = ['"{}"'.format(j['word'].replace('"', "'"))]
             else:
                 name = ['"{}"'.format(w['form'].replace('"', "'")) for w in j['forms'] if 'canonical' in w['tags']]
-            pos = '"{}"'.format(j['pos'].replace('"', "'"))
+                for w in j['forms']:
+                    if 'canonical' in w['tags']:
+                        if j['pos'] == 'noun':
+                            for t in w['tags']:
+                                if t in gender_list:
+                                    genders.append(Gender[t.upper()])
+                    else:
+                        if j['pos'] == 'noun':
+                            # Maybe a declension?
+                            cases = find_declensions(w['tags'])
+                            for c, p in cases:
+                                for n in name:
+                                    declensions.append((n, w['form'], c, p))
+
             for sense in j['senses']:
                 conj = True
                 if 'form_of' not in sense:
@@ -66,36 +84,6 @@ def initialize_database():
                                 for n in name:
                                     declensions.append((n, f['word'], c, p))
 
-                        # Find IPA for manual declension
-                        if 'sounds' in j:
-                            found = False
-                            for s in j['sounds']:
-                                if 'ipa' in s:
-                                    syllables = separate_syllables([s['ipa']])
-                                    for n in name:
-                                        noun_ipa.append((n, str(s['ipa']),
-                                                         len(syllables),
-                                                         bool(re.fullmatch(long_syllable, syllables[-1]) is not None)))
-                                    found = True
-                            if not found:
-                                debug('No ipa translation found for {}'.format(j['word']))
-                        else:
-                            debug('No sounds found for {}'.format(j['word']))
-
-                        # Detect proto-germanic
-                        if 'etymology_templates' in j:
-                            for temp in j['etymology_templates']:
-                                if temp['name'] == 'inh':
-                                    # The word was inherited
-                                    args = temp['args']
-                                    if args['2'] == 'gem-pro':
-                                        # And it was inherited from proto germanic
-                                        proto = args['3']
-                                        for n in name:
-                                            noun_germ.append((n, proto))
-                        else:
-                            debug('{} is an OE innovation'.format(j['word']))
-
                     # Detect Conjugations
                     elif j['pos'] == 'verb':
                         conjs = find_verb_conjugations(sense['tags'])
@@ -103,6 +91,39 @@ def initialize_database():
                             for f in sense['form_of']:
                                 for n in name:
                                     conjugations.append((n, f['word'], per, pl, t, m, part, pre))
+
+                if j['pos'] == 'noun':
+                    # Find IPA for manual declension
+                    if 'sounds' in j:
+                        found = False
+                        for s in j['sounds']:
+                            if 'ipa' in s:
+                                syllables = separate_syllables([s['ipa']])
+                                for n in name:
+                                    noun_ipa.append((n, str(s['ipa']),
+                                                     len(syllables),
+                                                     bool(re.fullmatch(long_syllable, syllables[-1]) is not None)))
+                                found = True
+                        if not found:
+                            debug('No ipa translation found for {}'.format(j['word']))
+                    else:
+                        debug('No sounds found for {}'.format(j['word']))
+
+                    # Detect proto-germanic
+                    if 'etymology_templates' in j:
+                        for temp in j['etymology_templates']:
+                            if temp['name'] == 'inh':
+                                # The word was inherited
+                                args = temp['args']
+                                if args['2'] == 'gem-pro':
+                                    # And it was inherited from proto germanic
+                                    proto = args['3']
+                                    for n in name:
+                                        for g in genders:
+                                            noun_germ.append((n, proto, g))
+                    else:
+                        debug('{} is an OE innovation'.format(j['word']))
+
                 definition = '"{}"'.format(
                     ('. '.join(sense['glosses']) if 'glosses' in sense else '').replace('"', "'"))
                 for n in name:
@@ -113,6 +134,7 @@ def initialize_database():
         insert_declensions(declensions)
         insert_verb_conjugations(conjugations)
         insert_ipa(noun_ipa)
+        insert_proto(noun_germ)
 
 
 def find_declensions(sense: List[str]) -> List[Tuple[str, str]]:
@@ -234,10 +256,10 @@ def insert_ipa(declensions: List[Tuple[str, str, int, bool]]):
     cont.insert_record('ipa', tuples)
 
 
-def insert_proto(declensions: List[Tuple[str, str]]):
+def insert_proto(declensions: List[Tuple[str, str, Gender]]):
     cont = SQLController.get_instance()
 
-    debug('Inserting Noun IPA Table')
+    debug('Inserting Noun Proto Germanic Table')
     words = list(set([d[0] for d in declensions]))
     where_clause = 'name in ({})'.format(','.join(words)) if len(words) > 1 else 'name = {}'.format(words[0])
     indices = cont.select_conditional('old_english_words', 'id, name, pos', where_clause)
@@ -257,10 +279,12 @@ def insert_proto(declensions: List[Tuple[str, str]]):
 
     debug('linking...')
     tuples = []
-    for w, t in declensions:
+    for w, t, g in declensions:
         w = w[1:-1]
         if w in index_dict:
-            tuples.append(('"{}"'.format(index_dict[w]), '"{}"'.format(t.replace('"', "'"))))
+            tuples.append(('"{}"'.format(index_dict[w]),
+                           '"{}"'.format(t.replace('"', "'")),
+                           '"{}"'.format(g.name.lower())))
         else:
             debug('{} was not found to be a root word'.format(w))
 
