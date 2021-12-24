@@ -1,8 +1,8 @@
-#OE Sentence Generator
+# OE Sentence Generator
 And Old English Sentence Generator. This project makes use of wiktionary dumps to generate a database that can then be
 used to generate random Old English sentences. 
 
-#Database Layout
+# Database Layout
 The database consists of several tables
 - **English Words**: Contains the english words used for translation.
 - **Old English Words**: Contains all of the old english words including different forms, the `is_conjugation` field is used to determine if the word is a root or not.
