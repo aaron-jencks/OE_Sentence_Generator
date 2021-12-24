@@ -32,6 +32,7 @@ n = Noun.get_random_word()  # Generates a new random noun
 ```
 
 You can also specify restrictions, such as the available cases, gender, and plurality
+(Currently only Case and Plurality are implemented)
 
 ```python
 from grammar.pos import Noun
