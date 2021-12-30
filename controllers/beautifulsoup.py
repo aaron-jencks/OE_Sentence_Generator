@@ -26,7 +26,6 @@ class SoupStemScraper:
         self.soup: Union[None, BeautifulSoup] = None
         self.word_list: List[str] = []
         self.setup()
-        self.find_words()
 
     def setup(self):
         resp = simple_get(self.url)
@@ -92,9 +91,14 @@ class SoupStemScraper:
             self.word_list = []
             page_soup = self.soup
             for p in range(tpc):
-                next_url = wiktionary_root + '/' + page_soup.find('a', text='next page')['href']
-                lis = page_soup.findAll('li', attrs={'id': ''})
-                for li in tqdm(lis):
+                next_link = page_soup.find('a', text='next page')
+                if next_link is not None:
+                    next_url = wiktionary_root + '/' + next_link['href']
+                else:
+                    next_url = None
+
+                lis = page_soup.findAll('li', attrs={'id': ''})[:-1]
+                for li in tqdm(lis, desc='Page {}'.format(p + 1)):
                     link = li.find('a').get('href')
                     page = wiktionary_root + '/' + link
                     declensions = self.lookup_word_declensions(li.text, page)

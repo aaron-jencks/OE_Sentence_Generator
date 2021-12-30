@@ -15,7 +15,7 @@ soup_targets = {
             'neuter': 'Category:Old_English_neuter_n-stem_nouns'
         },
         'nd-stem': 'Category:Old_English_nd-stem_nouns',
-        'ō-stem': 'Category:Old_English_ō-stem_nouns',
+        'ō-stem': 'Category:Old_English_%C5%8D-stem_nouns',
         'multiple-declensions': 'Category:Old_English_nouns_with_multiple_declensions',
         'u-stem': 'Category:Old_English_u-stem_nouns',
         'z-stem': 'Category:Old_English_z-stem_nouns'
