@@ -1,4 +1,4 @@
-wiktionary_root = 'https://en.wiktionary.org/wiki'
+wiktionary_root = 'https://en.wiktionary.org'
 
 soup_targets = {
     'nouns': {
