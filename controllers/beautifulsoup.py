@@ -33,33 +33,39 @@ class SoupStemScraper:
         if resp is not None:
             self.soup = BeautifulSoup(resp, 'html.parser')
 
-    @staticmethod
-    def lookup_word_declensions(word: str, url: str) -> Union[Dict[str, str], None]:
+    def lookup_word_declensions(self, word: str, url: str) -> Union[List[Dict[str, str]], None]:
+        declensions = []
         resp = simple_get(url)
         if resp is not None:
-            declensions = {'word': word}
+            decls = {'word': word}
             w_soup = BeautifulSoup(resp, 'html.parser')
 
             header = w_soup.find('span', attrs={'id': 'Old_English'})
             
             if header is not None:
-                header = header.find_next('span', attrs={'id': 'Noun'})
+                header = header.find_next('span', attrs={'id': re.compile('(Noun|Proper_noun).*')})
 
                 if header is not None:
-                    header = header.find_next('span', attrs={'id': 'Declension'})
+                    header = header.find_next('span', attrs={'id': re.compile('(Declension|Inflection).*')})
 
                     if header is not None:
-                        rows = header.findAll('tr')
-                        order = map(str.upper, [r.text for r in rows[0].findAll('th')])
-                        for r in rows[1:]:
-                            data = r.findAll(['th', 'td'])
-                            data_dict = {}
-                            case = ''
-                            for col, d in zip(order, data):
-                                data_dict[col] = d.text
-                                if col == 'CASE':
-                                    case = d.text
-                            declensions[case] = data_dict
+                        regex_str = r'Declension of .+ \(\w+ {}\)'.format(self.stem)
+                        tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})
+                                  if re.match(regex_str, tbl.text)]
+                        for tbl in tables:
+                            tbl_tag = tbl.find_next('table')
+                            rows = tbl_tag.find_all('tr')
+                            order = list(map(str.upper, [r.text[:-1] for r in rows[0].findAll('th')]))
+                            for r in rows[1:]:
+                                data = r.findAll(['th', 'td'])
+                                data_dict = {}
+                                case = ''
+                                for col, d in zip(order, data):
+                                    data_dict[col] = d.text[:-1]
+                                    if col == 'CASE':
+                                        case = d.text[:-1]
+                                decls[case] = data_dict
+                            declensions.append(decls)
                         return declensions
                     else:
                         debug('{} has no declensions.'.format(word))
@@ -89,7 +95,7 @@ class SoupStemScraper:
                     page = wiktionary_root + '/' + link
                     declensions = self.lookup_word_declensions(li.text, page)
                     if declensions is not None:
-                        self.word_list.append(declensions)
+                        self.word_list += declensions
                     else:
                         debug('{} did not have any declensions'.format(li.text))
                 if next_url is not None:
@@ -99,6 +105,8 @@ class SoupStemScraper:
                     else:
                         error('Failed to load the next page, finished {} of {}'.format(p + 1, tpc))
                         break
+
+        return self.word_list
 
 
 if __name__ == '__main__':
