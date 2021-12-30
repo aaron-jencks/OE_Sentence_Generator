@@ -27,7 +27,7 @@ id integer primary key,
 word text not null,
 origin integer not null,
 plurality text,
-declension text not null,
+noun_case text not null,
 foreign key (origin) references old_english_words(id)
 );
 '''
@@ -48,5 +48,5 @@ views = [
 record_typing = {
     'old_english_words': '(name, pos, definition, is_affix)',
     'conjugations': '(word, origin, person, plurality, mood, tense, participle, preterite)',
-    'declensions': '(word, origin, plurality, declension)'
+    'declensions': '(word, origin, plurality, noun_case)'
 }
