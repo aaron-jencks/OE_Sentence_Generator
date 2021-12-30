@@ -6,7 +6,7 @@ from settings import old_english_word_json, modern_english_word_json
 
 import json
 from settings import data_path
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Union
 import os.path as path
 from tqdm import tqdm
 import re
@@ -16,7 +16,84 @@ etymology_names = ['inh', 'der']
 language_codes = ['ang', 'en']
 
 
-def initialize_database():
+def db_string(s: str) -> str:
+    return '"{}"'.format(s.replace('"', "'"))
+
+
+def convert_word_dictionary_noun(words: List[Dict[str, Union[List[str],
+                                                             Dict[str, str],
+                                                             str]]]) -> Dict[str, List[tuple]]:
+    """
+    :param words: List of dictionaries to be converted
+    {
+    'word': word,
+    'definitions': List of definitions,
+    'case': Dictionary of SINGULAR, PLURAL forms of case 'case'
+    }
+    :return: Returns a dictionary with each key corresponding to a table and it's value a list of data to insert
+    """
+
+    debug('Converting Noun dictionaries')
+    roots = []
+    declensions = []
+
+    for w in tqdm(words):
+        for d in w['definitions']:
+            roots.append(('old_english_words',
+                          (db_string(w['word']), '"noun"', db_string(d),
+                           w['word'].startswith('-') or w['word'].endswith('-'))))  # Check for affix
+
+        for c, d in w.items():
+            if c not in ['word', 'definitions']:
+                # c is a case
+                for p, v in d.items():
+                    declensions.append(('declensions', (db_string(v), w['word'],
+                                                        db_string(p.lower()), db_string(c.lower()))))
+
+    return {'old_english_words': roots, 'declensions': declensions}
+
+
+conversion_dict = {
+    'noun': convert_word_dictionary_noun
+}
+
+
+def initialize_database_scraper():
+    from soup_targets import soup_targets, wiktionary_root
+    from controllers.sql import SQLController
+    from controllers.beautifulsoup import SoupStemScraper
+
+    cont = SQLController.get_instance()
+    cont.reset_database()
+    cont.setup_tables()
+
+    roots = []
+    declensions = []
+    for t, u in soup_targets.items():
+        words = []
+        debug('Searching for {}'.format(t))
+        for s, url in u.items():
+            debug('Searching for {}'.format(s))
+            if isinstance(url, dict):
+                for g, gurl in url.items():
+                    debug('Checking for {}'.format(g))
+                    scraper = SoupStemScraper(wiktionary_root + '/wiki/' + gurl, s)
+                    words += scraper.find_words()
+            else:
+                scraper = SoupStemScraper(wiktionary_root + '/wiki/' + url, s)
+                words += scraper.find_words()
+
+        tuple_dict = conversion_dict[t](words)
+        if 'old_english_words' in tuple_dict:
+            roots += tuple_dict['old_english_words']
+        if 'declensions' in tuple_dict:
+            declensions += tuple_dict['declensions']
+
+    cont.insert_record('old_english_words', roots)
+    insert_declensions(declensions)
+
+
+def initialize_database_dump():
     cont = SQLController.get_instance()
     cont.reset_database()
 
@@ -191,7 +268,8 @@ def insert_declensions(declensions: List[Tuple[str, str, str, str]]):
     cont = SQLController.get_instance()
 
     debug('Inserting Noun Declension Table')
-    words = list(set(['"{}"'.format(d[1].replace('"', "'")) for d in declensions] + [d[0] for d in declensions]))
+    # words = list(set(['"{}"'.format(d[1].replace('"', "'")) for d in declensions] + [d[0] for d in declensions]))
+    words = list(set(['"{}"'.format(d[1].replace('"', "'")) for d in declensions]))  # for scraper style
     where_clause = 'name in ({})'.format(','.join(words)) if len(words) > 1 else 'name = {}'.format(words[0])
     indices = cont.select_conditional('old_english_words', 'id, name, pos', where_clause)
 
@@ -210,15 +288,24 @@ def insert_declensions(declensions: List[Tuple[str, str, str, str]]):
 
     debug('linking...')
     tuples = []
-    for o, w, c, p in declensions:
-        if w in index_dict:
-            orig = o[1:-1]
-            if orig in index_dict:
-                tuples.append((index_dict[w], index_dict[orig], '"{}"'.format(p), '"{}"'.format(c)))
-            else:
-                debug('{} was not found to be a root word'.format(o))
+    # for o, w, c, p in declensions:
+    for w, o, p, c in declensions:  # for scraper style
+        # if w in index_dict:
+        #     # orig = o[1:-1]
+        #     orig = o  # for scraper style
+        #     if orig in index_dict:
+        #         tuples.append((w, index_dict[orig], db_string(p), db_string(c)))
+        #     else:
+        #         debug('{} was not found to be a root word'.format(o))
+        # else:
+        #     debug('{} was not found to be a root word'.format(w))
+
+        # For scraper style
+        orig = o  # for scraper style
+        if orig in index_dict:
+            tuples.append((w, index_dict[orig], p, c))
         else:
-            debug('{} was not found to be a root word'.format(w))
+            debug('{} was not found to be a root word'.format(o))
 
     cont.insert_record('declensions', tuples)
 
@@ -330,4 +417,4 @@ def insert_verb_conjugations(conjugations: List[Tuple[str, str, str, str, str, s
 
 
 if __name__ == '__main__':
-    initialize_database()
+    initialize_database_scraper()
