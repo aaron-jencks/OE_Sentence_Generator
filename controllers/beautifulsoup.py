@@ -43,7 +43,7 @@ class SoupStemScraper:
             header = w_soup.find('span', attrs={'id': 'Old_English'})
             
             if header is not None:
-                header = header.find_next('span', attrs={'id': re.compile('(Noun|Proper_noun).*')})
+                header = header.find_next('span', attrs={'id': re.compile('(Noun|Proper_noun|Suffix).*')})
 
                 if header is not None:
                     header = header.find_next('span', attrs={'id': re.compile('(Declension|Inflection).*')})
@@ -111,6 +111,10 @@ class SoupStemScraper:
 
 if __name__ == '__main__':
     from soup_targets import soup_targets
+    from controllers.sql import SQLController
+
+    cont = SQLController.get_instance()
+    cont.setup_tables()
 
     for t, u in soup_targets.items():
         words = []
