@@ -43,6 +43,9 @@ class SoupStemScraper:
             header = w_soup.find('span', attrs={'id': 'Old_English'})
             
             if header is not None:
+                definitions = [d.text.split(':')[0] for d in header.find_next('ol').find_all('li')]
+                decls['definitions'] = definitions
+
                 header = header.find_next('span', attrs={'id': re.compile('(Noun|Proper_noun|Suffix).*')})
 
                 if header is not None:
@@ -61,9 +64,10 @@ class SoupStemScraper:
                                 data_dict = {}
                                 case = ''
                                 for col, d in zip(order, data):
-                                    data_dict[col] = d.text[:-1]
                                     if col == 'CASE':
                                         case = d.text[:-1]
+                                    else:
+                                        data_dict[col] = d.text[:-1]
                                 decls[case] = data_dict
                             declensions.append(decls)
                         return declensions
