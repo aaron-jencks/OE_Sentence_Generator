@@ -39,22 +39,21 @@ def convert_word_dictionary_noun(words: List[Dict[str, Union[List[str],
 
     for w in tqdm(words):
         for d in w['definitions']:
-            roots.append(('old_english_words',
-                          (db_string(w['word']), '"noun"', db_string(d),
-                           w['word'].startswith('-') or w['word'].endswith('-'))))  # Check for affix
+            roots.append((db_string(w['word']), '"noun"', db_string(d),
+                          w['word'].startswith('-') or w['word'].endswith('-')))  # Check for affix
 
         for c, d in w.items():
             if c not in ['word', 'definitions']:
                 # c is a case
                 for p, v in d.items():
-                    declensions.append(('declensions', (db_string(v), w['word'],
-                                                        db_string(p.lower()), db_string(c.lower()))))
+                    declensions.append((db_string(v), w['word'],
+                                        db_string(p.lower()), db_string(c.lower())))
 
     return {'old_english_words': roots, 'declensions': declensions}
 
 
 conversion_dict = {
-    'noun': convert_word_dictionary_noun
+    'nouns': convert_word_dictionary_noun
 }
 
 
@@ -77,11 +76,12 @@ def initialize_database_scraper():
             if isinstance(url, dict):
                 for g, gurl in url.items():
                     debug('Checking for {}'.format(g))
-                    scraper = SoupStemScraper(wiktionary_root + '/wiki/' + gurl, s)
+                    scraper = SoupStemScraper(wiktionary_root + '/wiki/' + gurl, s, False)
                     words += scraper.find_words()
             else:
-                scraper = SoupStemScraper(wiktionary_root + '/wiki/' + url, s)
+                scraper = SoupStemScraper(wiktionary_root + '/wiki/' + url, s, False)
                 words += scraper.find_words()
+            debug('Found {} words so far'.format(len(words)))
 
         tuple_dict = conversion_dict[t](words)
         if 'old_english_words' in tuple_dict:

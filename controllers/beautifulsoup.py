@@ -20,11 +20,12 @@ def simple_get(url: str) -> str:
 
 
 class SoupStemScraper:
-    def __init__(self, url: str, stem_type: str):
+    def __init__(self, url: str, stem_type: str, all_pages: bool = True):
         self.url = url
         self.stem = stem_type
         self.soup: Union[None, BeautifulSoup] = None
         self.word_list: List[str] = []
+        self.all_pages = all_pages
         self.setup()
 
     def setup(self):
@@ -90,7 +91,7 @@ class SoupStemScraper:
 
             self.word_list = []
             page_soup = self.soup
-            for p in range(tpc):
+            for p in range(tpc if self.all_pages else 1):
                 next_link = page_soup.find('a', text='next page')
                 if next_link is not None:
                     next_url = wiktionary_root + '/' + next_link['href']
