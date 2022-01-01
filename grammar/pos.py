@@ -1,5 +1,5 @@
 from controllers.sql import SQLController
-from utils.grammar import Case, Plurality, Gender, Masculine
+from utils.grammar import Case, Plurality
 from controllers.ui import debug
 from grammar.restrictions import WordRestriction
 
@@ -12,7 +12,6 @@ class Noun:
         self.root = root
         self.case: Case = Case.ROOT
         self.plurality: Plurality = Plurality.NONE
-        self.gender: Gender = Masculine()
 
     def __repr__(self) -> str:
         return '{} {} {}'.format(self.root, self.case.name.lower(), self.plurality.name.lower())
@@ -41,11 +40,11 @@ class Noun:
         if self.case == Case.ROOT:
             return self.root
         else:
-            declensions = cont.select_conditional('conjugations', 'word',
-                                                  'origin in ({}) and declension = "{}"{}'.format(
-                                                      self.case.name.lower(),
+            declensions = cont.select_conditional('declensions', 'word',
+                                                  'origin in ({}) and noun_case = "{}"{}'.format(
                                                       str(self.index)[1:-1],
-                                                      ' and "{}"'.format(
+                                                      self.case.name.lower(),
+                                                      ' and plurality = "{}"'.format(
                                                         self.plurality.name.lower())
                                                       if self.plurality != Plurality.NONE else
                                                       ''))
@@ -64,11 +63,11 @@ class Noun:
 
             dec_index = [d[0] for d in declensions]
 
-            return cont.select_conditional('old_english_words', 'name', 'id in ({})'.format(str(dec_index)[1:-1]))[0][0]
+            return dec_index[0]
 
     def get_possible_declensions(self) -> List[Tuple[Case, Plurality]]:
         cont = SQLController.get_instance()
-        declensions = cont.select_conditional('declensions', 'plurality, declension', 'origin in ({})'.format(
+        declensions = cont.select_conditional('declensions', 'plurality, noun_case', 'origin in ({})'.format(
             str(self.index)[1:-1]))
         return [(Case.ROOT, Plurality.NONE)] + [(Case[c.upper()], Plurality[p.upper()]) for p, c in declensions]
 
@@ -82,5 +81,5 @@ class Noun:
             word = rng.choice(possible_words)[0]
             return Noun(cont.select_conditional('old_english_words', 'name', 'id = {}'.format(word))[0][0])
         else:
-            possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "noun" and is_conjugation = 0')
+            possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "noun" and is_affix = 0')
         return Noun(rng.choice(possible_words)[0])
