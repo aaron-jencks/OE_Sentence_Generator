@@ -76,10 +76,10 @@ def initialize_database_scraper():
             if isinstance(url, dict):
                 for g, gurl in url.items():
                     debug('Checking for {}'.format(g))
-                    scraper = SoupStemScraper(wiktionary_root + '/wiki/' + gurl, s, False)
+                    scraper = SoupStemScraper(wiktionary_root + '/wiki/' + gurl, s)
                     words += scraper.find_words()
             else:
-                scraper = SoupStemScraper(wiktionary_root + '/wiki/' + url, s, False)
+                scraper = SoupStemScraper(wiktionary_root + '/wiki/' + url, s)
                 words += scraper.find_words()
             debug('Found {} words so far'.format(len(words)))
 
