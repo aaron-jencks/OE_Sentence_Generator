@@ -9,15 +9,13 @@ is_affix bool not null
 
 conjugations_schemas = '''conjugations (
 id integer primary key,
-word integer not null,
+word text not null,
 origin integer not null,
 person text,
 plurality text,
 mood text,
 tense text,
 participle bool not null,
-preterite bool not null,
-foreign key (word) references old_english_words(id),
 foreign key (origin) references old_english_words(id)
 );
 '''
