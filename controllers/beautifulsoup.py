@@ -106,7 +106,7 @@ class SoupStemScraper:
                     if declensions is not None:
                         self.word_list += declensions
                     else:
-                        debug('{} did not have any declensions'.format(li.text))
+                        debug('{} did not have any forms'.format(li.text))
                 if next_url is not None:
                     phtml = simple_get(next_url)
                     if phtml is not None:
@@ -116,6 +116,54 @@ class SoupStemScraper:
                         break
 
         return self.word_list
+
+
+class SoupVerbClassScraper(SoupStemScraper):
+    def lookup_word_declensions(self, word: str, url: str) -> Union[List[Dict[str, str]], None]:
+        conjugations = []
+        resp = simple_get(url)
+        if resp is not None:
+            conjs = {'word': word}
+            w_soup = BeautifulSoup(resp, 'html.parser')
+
+            header = w_soup.find('span', attrs={'id': 'Old_English'})
+
+            if header is not None:
+                definitions = [d.text.split(':')[0] for d in header.find_next('ol').find_all('li')]
+                conjs['definitions'] = definitions
+
+                header = header.find_next('span', attrs={'id': re.compile('Verb.*')})
+
+                if header is not None:
+                    header = header.find_next('span', attrs={'id': re.compile('Conjugation.*')})
+
+                    if header is not None:
+                        regex_str = r'Conjugation of .+ \(\w+ {}\)'.format(self.stem)
+                        tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})
+                                  if re.match(regex_str, tbl.text)]
+                        for tbl in tables:
+                            tbl_tag = tbl.find_next('table')
+                            rows = tbl_tag.find_all('tr')
+                            order = list(map(str.upper, [r.text[:-1] for r in rows[0].findAll('th')]))
+                            for r in rows[1:]:
+                                data = r.findAll(['th', 'td'])
+                                data_dict = {}
+                                case = ''
+                                for col, d in zip(order, data):
+                                    if col == 'CASE':
+                                        case = d.text[:-1]
+                                    else:
+                                        data_dict[col] = d.text[:-1]
+                                conjs[case] = data_dict
+                            conjugations.append(conjs)
+                        return conjugations
+                    else:
+                        debug('{} has no conjugations.'.format(word))
+                else:
+                    debug('{} is not a verb'.format(word))
+            else:
+                debug('{} is not in old english'.format(word))
+        return None
 
 
 if __name__ == '__main__':
