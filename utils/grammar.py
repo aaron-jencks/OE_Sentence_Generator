@@ -73,6 +73,7 @@ class Mood(enum.Enum):
     INDICATIVE = 0
     IMPERATIVE = 1
     SUBJUNCTIVE = 2
+    PARTICIPLE = 3
 
 
 class Strength(enum.Enum):
