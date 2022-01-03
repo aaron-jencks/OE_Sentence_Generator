@@ -86,8 +86,9 @@ class SoupStemScraper:
             page_count = re.match(r'The following (?P<current>\d+) pages are in this category, '
                                   r'out of (?P<total>\d*,?\d+) total\.', pages.text)
 
-            tpc = math.ceil(int(page_count['total'].replace(',', '')) / 200)
-            debug('Found {} words over {} pages'.format(page_count['total'], tpc))
+            total_count = int(page_count['total'].replace(',', '')) if page_count is not None else 1
+            tpc = math.ceil(total_count / 200) if page_count is not None else 1
+            debug('Found {} words over {} pages'.format(page_count['total'] if page_count is not None else 1, tpc))
 
             self.word_list = []
             page_soup = self.soup
@@ -98,7 +99,7 @@ class SoupStemScraper:
                 else:
                     next_url = None
 
-                lis = page_soup.findAll('li', attrs={'id': ''})[:-1]
+                lis = page_soup.findAll('li', attrs={'id': ''})[:200 if p < (tpc - 1) else (total_count - (p * 200))]
                 for li in tqdm(lis, desc='Page {}'.format(p + 1)):
                     link = li.find('a').get('href')
                     page = wiktionary_root + '/' + link
@@ -144,9 +145,12 @@ class SoupVerbClassScraper(SoupStemScraper):
                         for tbl in tables:
                             tbl_tag = tbl.find_next('table')
                             rows = tbl_tag.find_all('tr')
-                            order = list(map(str.upper, [r.text[:-1] for r in rows[0].findAll('th')]))
-                            for r in rows[1:]:
-                                data = r.findAll(['th', 'td'])
+                            for r in rows:
+                                head = r.findAll('th')
+                                if len(head) > 1:
+                                    # Found a header row
+                                    m, t1, t2 = head
+                                    pass
                                 data_dict = {}
                                 case = ''
                                 for col, d in zip(order, data):
@@ -164,6 +168,84 @@ class SoupVerbClassScraper(SoupStemScraper):
             else:
                 debug('{} is not in old english'.format(word))
         return None
+
+
+class SoupVerbHeaderScraper(SoupStemScraper):
+    def lookup_word_declensions(self, word: str, url: str) -> Union[str, None]:
+        resp = simple_get(url)
+        if resp is not None:
+            conjs = ''
+            w_soup = BeautifulSoup(resp, 'html.parser')
+
+            header = w_soup.find('span', attrs={'id': 'Old_English'})
+
+            if header is not None:
+                header = header.find_next('span', attrs={'id': re.compile('Verb.*')})
+
+                if header is not None:
+                    header = header.find_next('span', attrs={'id': re.compile('Conjugation.*')})
+
+                    if header is not None:
+                        regex_str = r'Conjugation of .+ \(\w+ {}\)'.format(self.stem)
+                        tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})
+                                  if re.match(regex_str, tbl.text)]
+                        for tbl in tables:
+                            tbl_tag = tbl.find_next('table')
+                            rows = tbl_tag.find_all('tr')
+                            for r in rows:
+                                data = r.findAll(['th', 'td'])
+                                for element in data:
+                                    if element.name == 'th':
+                                        conjs += element.text
+                                    else:
+                                        conjs += '_'
+                        return conjs
+                    else:
+                        debug('{} has no conjugations.'.format(word))
+                else:
+                    debug('{} is not a verb'.format(word))
+            else:
+                debug('{} is not in old english'.format(word))
+        return None
+
+    def find_words(self):
+        if self.soup is not None:
+            pages = self.soup.find('div', attrs={'id': 'mw-pages'})
+            pages = pages.find_next('p')
+            page_count = re.match(r'The following (?P<current>\d+) pages are in this category, '
+                                  r'out of (?P<total>\d*,?\d+) total\.', pages.text)
+
+            total_count = int(page_count['total'].replace(',', '')) if page_count is not None else 1
+            tpc = math.ceil(total_count / 200) if page_count is not None else 1
+            debug('Found {} words over {} pages'.format(page_count['total'] if page_count is not None else 1, tpc))
+
+            self.word_list = set()
+            page_soup = self.soup
+            for p in range(tpc if self.all_pages else 1):
+                next_link = page_soup.find('a', text='next page')
+                if next_link is not None:
+                    next_url = wiktionary_root + '/' + next_link['href']
+                else:
+                    next_url = None
+
+                lis = page_soup.findAll('li', attrs={'id': ''})[:200 if p < (tpc - 1) else (total_count - (p * 200))]
+                for li in tqdm(lis, desc='Page {}'.format(p + 1)):
+                    link = li.find('a').get('href')
+                    page = wiktionary_root + '/' + link
+                    declensions = self.lookup_word_declensions(li.text, page)
+                    if declensions is not None:
+                        self.word_list.add(declensions)
+                    else:
+                        debug('{} did not have any forms'.format(li.text))
+                if next_url is not None:
+                    phtml = simple_get(next_url)
+                    if phtml is not None:
+                        page_soup = BeautifulSoup(phtml, 'html.parser')
+                    else:
+                        error('Failed to load the next page, finished {} of {}'.format(p + 1, tpc))
+                        break
+
+        return self.word_list
 
 
 if __name__ == '__main__':
