@@ -66,6 +66,7 @@ def initialize_database_scraper():
     cont.reset_database()
     cont.setup_tables()
 
+    noun_declension_tables = set()
     roots = []
     declensions = []
     for t, u in soup_targets.items():
@@ -76,11 +77,15 @@ def initialize_database_scraper():
             if isinstance(url, dict):
                 for g, gurl in url.items():
                     debug('Checking for {}'.format(g))
-                    scraper = SoupStemScraper(wiktionary_root + '/wiki/' + gurl, s)
+                    scraper = SoupStemScraper(wiktionary_root + '/wiki/' + gurl, s,
+                                              initial_table_set=noun_declension_tables)
                     words += scraper.find_words()
+                    noun_declension_tables = scraper.table_set
             else:
-                scraper = SoupStemScraper(wiktionary_root + '/wiki/' + url, s)
+                scraper = SoupStemScraper(wiktionary_root + '/wiki/' + url, s,
+                                          initial_table_set=noun_declension_tables)
                 words += scraper.find_words()
+                noun_declension_tables = scraper.table_set
             debug('Found {} words so far'.format(len(words)))
 
         tuple_dict = conversion_dict[t](words)
