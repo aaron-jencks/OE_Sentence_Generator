@@ -20,11 +20,12 @@ def simple_get(url: str) -> str:
 
 
 class SoupStemScraper:
-    def __init__(self, url: str, stem_type: str, all_pages: bool = True):
+    def __init__(self, url: str, stem_type: str, all_pages: bool = True, initial_table_set: set = None):
         self.url = url
         self.stem = stem_type
         self.soup: Union[None, BeautifulSoup] = None
         self.word_list: List[str] = []
+        self.table_set = set() if initial_table_set is None else initial_table_set
         self.all_pages = all_pages
         self.setup()
 
@@ -52,24 +53,24 @@ class SoupStemScraper:
                     header = header.find_next('span', attrs={'id': re.compile('(Declension|Inflection).*')})
 
                     if header is not None:
-                        regex_str = r'Declension of .+ \(\w+ {}\)'.format(self.stem)
-                        tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})
-                                  if re.match(regex_str, tbl.text)]
+                        tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})]
                         for tbl in tables:
-                            tbl_tag = tbl.find_next('table')
-                            rows = tbl_tag.find_all('tr')
-                            order = list(map(str.upper, [r.text[:-1] for r in rows[0].findAll('th')]))
-                            for r in rows[1:]:
-                                data = r.findAll(['th', 'td'])
-                                data_dict = {}
-                                case = ''
-                                for col, d in zip(order, data):
-                                    if col == 'CASE':
-                                        case = d.text[:-1]
-                                    else:
-                                        data_dict[col] = d.text[:-1]
-                                decls[case] = data_dict
-                            declensions.append(decls)
+                            if tbl.text not in self.table_set:
+                                self.table_set.add(tbl.text)
+                                tbl_tag = tbl.find_next('table')
+                                rows = tbl_tag.find_all('tr')
+                                order = list(map(str.upper, [r.text[:-1] for r in rows[0].findAll('th')]))
+                                for r in rows[1:]:
+                                    data = r.findAll(['th', 'td'])
+                                    data_dict = {}
+                                    case = ''
+                                    for col, d in zip(order, data):
+                                        if col == 'CASE':
+                                            case = d.text[:-1]
+                                        else:
+                                            data_dict[col] = d.text[:-1]
+                                    decls[case] = data_dict
+                                declensions.append(decls)
                         return declensions
                     else:
                         debug('{} has no declensions.'.format(word))
@@ -139,27 +140,27 @@ class SoupVerbClassScraper(SoupStemScraper):
                     header = header.find_next('span', attrs={'id': re.compile('Conjugation.*')})
 
                     if header is not None:
-                        regex_str = r'Conjugation of .+ \(\w+ {}\)'.format(self.stem)
-                        tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})
-                                  if re.match(regex_str, tbl.text)]
+                        tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})]
                         for tbl in tables:
-                            tbl_tag = tbl.find_next('table')
-                            rows = tbl_tag.find_all('tr')
-                            for r in rows:
-                                head = r.findAll('th')
-                                if len(head) > 1:
-                                    # Found a header row
-                                    m, t1, t2 = head
-                                    pass
-                                data_dict = {}
-                                case = ''
-                                for col, d in zip(order, data):
-                                    if col == 'CASE':
-                                        case = d.text[:-1]
-                                    else:
-                                        data_dict[col] = d.text[:-1]
-                                conjs[case] = data_dict
-                            conjugations.append(conjs)
+                            if tbl.text not in self.table_set:
+                                self.table_set.add(tbl.text)
+                                tbl_tag = tbl.find_next('table')
+                                rows = tbl_tag.find_all('tr')
+                                for r in rows:
+                                    head = r.findAll('th')
+                                    if len(head) > 1:
+                                        # Found a header row
+                                        m, t1, t2 = head
+                                        pass
+                                    data_dict = {}
+                                    case = ''
+                                    for col, d in zip(order, data):
+                                        if col == 'CASE':
+                                            case = d.text[:-1]
+                                        else:
+                                            data_dict[col] = d.text[:-1]
+                                    conjs[case] = data_dict
+                                conjugations.append(conjs)
                         return conjugations
                     else:
                         debug('{} has no conjugations.'.format(word))
@@ -186,19 +187,19 @@ class SoupVerbHeaderScraper(SoupStemScraper):
                     header = header.find_next('span', attrs={'id': re.compile('Conjugation.*')})
 
                     if header is not None:
-                        regex_str = r'Conjugation of .+ \(\w+ {}\)'.format(self.stem)
-                        tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})
-                                  if re.match(regex_str, tbl.text)]
+                        tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})]
                         for tbl in tables:
-                            tbl_tag = tbl.find_next('table')
-                            rows = tbl_tag.find_all('tr')
-                            for r in rows:
-                                data = r.findAll(['th', 'td'])
-                                for element in data:
-                                    if element.name == 'th':
-                                        conjs += element.text
-                                    else:
-                                        conjs += '_'
+                            if tbl.text not in self.table_set:
+                                self.table_set.add(tbl.text)
+                                tbl_tag = tbl.find_next('table')
+                                rows = tbl_tag.find_all('tr')
+                                for r in rows:
+                                    data = r.findAll(['th', 'td'])
+                                    for element in data:
+                                        if element.name == 'th':
+                                            conjs += element.text
+                                        else:
+                                            conjs += '_'
                         return conjs
                     else:
                         debug('{} has no conjugations.'.format(word))
