@@ -16,6 +16,7 @@ plurality text,
 mood text,
 tense text,
 participle bool not null,
+is_infinitive bool not null,
 foreign key (origin) references old_english_words(id)
 );
 '''
@@ -45,6 +46,6 @@ views = [
 
 record_typing = {
     'old_english_words': '(name, pos, definition, is_affix)',
-    'conjugations': '(word, origin, person, plurality, mood, tense, participle, preterite)',
+    'conjugations': '(word, origin, person, plurality, mood, tense, participle, is_infinitive)',
     'declensions': '(word, origin, plurality, noun_case)'
 }
