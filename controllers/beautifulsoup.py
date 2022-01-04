@@ -1,7 +1,7 @@
 import urllib.request as request
 from urllib.error import HTTPError
 from bs4 import BeautifulSoup
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Tuple
 from tqdm import tqdm
 import re
 import math
@@ -121,6 +121,39 @@ class SoupStemScraper:
 
 
 class SoupVerbClassScraper(SoupStemScraper):
+    @staticmethod
+    def parse_tense(t: str) -> str:
+        m = re.match(r'(?P<tense>(past|present))(\stense)?', t)
+        if m is not None:
+            return m['tense'].upper()
+        debug('{} is not a valid tense string'.format(t))
+        return 'NONE'
+
+    @staticmethod
+    def parse_mood(t: str) -> str:
+        m = re.match(r'(?P<mood>(indicative|imperative|subjunctive|participle))(\smood)?', t)
+        if m is not None:
+            return m['mood'].upper()
+        debug('{} is not a valid mood string'.format(t))
+        return 'NONE'
+
+    @staticmethod
+    def parse_person_plurality(p: str) -> Tuple[str, str]:
+        m = re.match(r'(?P<person>([1-3](st|nd|rd)|first|second|third))(\sperson)?'
+                     r'(\s(?P<plurality>(singular|plural)))?', p)
+        if m is not None:
+            person = m['person']
+            if person == '1st':
+                person = 'first'
+            elif person == '2nd':
+                person = 'second'
+            elif person == '3rd':
+                person = 'third'
+            plurality = m['plurality'].upper() if 'plurality' in m else 'NONE'
+            return person.upper(), plurality
+        debug('{} is not a valid person string'.format(p))
+        return 'NONE', 'NONE'
+
     def lookup_word_declensions(self, word: str, url: str) -> Union[List[Dict[str, str]], None]:
         conjugations = []
         resp = simple_get(url)
@@ -133,11 +166,12 @@ class SoupVerbClassScraper(SoupStemScraper):
             if header is not None:
                 definitions = [d.text.split(':')[0] for d in header.find_next('ol').find_all('li')]
                 conjs['definitions'] = definitions
+                conjs['conjugations'] = []
 
-                header = header.find_next('span', attrs={'id': re.compile('Verb.*')})
+                header = header.find_next('span', attrs={'id': re.compile('(Verb|Suffix).*')})
 
                 if header is not None:
-                    header = header.find_next('span', attrs={'id': re.compile('Conjugation.*')})
+                    header = header.find_next('span', attrs={'id': re.compile('(Conjugation|Declension).*')})
 
                     if header is not None:
                         tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})]
@@ -145,22 +179,41 @@ class SoupVerbClassScraper(SoupStemScraper):
                             if tbl.text not in self.table_set:
                                 self.table_set.add(tbl.text)
                                 tbl_tag = tbl.find_next('table')
+
                                 rows = tbl_tag.find_all('tr')
+                                current_mood = ''
+                                current_tense_order = []
                                 for r in rows:
+                                    data_dict = {}
+
                                     head = r.findAll('th')
+                                    data = r.findAll('td')
                                     if len(head) > 1:
                                         # Found a header row
                                         m, t1, t2 = head
-                                        pass
-                                    data_dict = {}
-                                    case = ''
-                                    for col, d in zip(order, data):
-                                        if col == 'CASE':
-                                            case = d.text[:-1]
+                                        current_mood = m.text.replace('\n', '')
+                                        current_tense_order = [self.parse_tense(t1.text), self.parse_tense(t2.text)]
+                                    elif len(head) == 1:
+                                        # Found something with a person and plurality
+                                        if head[0].text.replace('\n', '') == 'infinitive':
+                                            data_dict['INFINITIVE'] = {
+                                                'can': data[0].text,
+                                                'to': data[1].text
+                                            }
                                         else:
-                                            data_dict[col] = d.text[:-1]
-                                    conjs[case] = data_dict
-                                conjugations.append(conjs)
+                                            person, plurality = self.parse_person_plurality(head[0].text)
+                                            data_dict[current_mood] = {'person': person, 'plurality': plurality}
+                                            if len(data) > 1:
+                                                for tense, d in zip(current_tense_order, data):
+                                                    data_dict[tense] = d.text
+                                            elif len(data) == 1:
+                                                data_dict['all tenses'] = data[0].text
+                                            else:
+                                                debug('{} had no data for {} {}'.format(word,
+                                                                                        current_mood,
+                                                                                        current_tense_order))
+                                    conjs['conjugations'].append(data_dict)
+                                    conjugations.append(conjs)
                         return conjugations
                     else:
                         debug('{} has no conjugations.'.format(word))
@@ -181,10 +234,10 @@ class SoupVerbHeaderScraper(SoupStemScraper):
             header = w_soup.find('span', attrs={'id': 'Old_English'})
 
             if header is not None:
-                header = header.find_next('span', attrs={'id': re.compile('Verb.*')})
+                header = header.find_next('span', attrs={'id': re.compile('(Verb|Suffix).*')})
 
                 if header is not None:
-                    header = header.find_next('span', attrs={'id': re.compile('Conjugation.*')})
+                    header = header.find_next('span', attrs={'id': re.compile('(Conjugation|Declension).*')})
 
                     if header is not None:
                         tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})]
