@@ -197,7 +197,7 @@ class SoupVerbHeaderScraper(SoupStemScraper):
                                     data = r.findAll(['th', 'td'])
                                     for element in data:
                                         if element.name == 'th':
-                                            conjs += element.text
+                                            conjs += element.text.replace('\n', '')
                                         else:
                                             conjs += '_'
                         return conjs

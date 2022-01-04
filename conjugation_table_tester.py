@@ -17,16 +17,17 @@ def find_different_conjugation_tables():
                 conj_table = scraper.table_set
                 print('Found {} formats'.format(len(w)))
                 words = words.union(w)
+                debug('Found {} words so far'.format(len(words)))
         else:
             scraper = SoupVerbHeaderScraper(wiktionary_root + '/wiki/' + url, s, initial_table_set=conj_table)
             w = scraper.find_words()
             conj_table = scraper.table_set
             print('Found {} formats'.format(len(w)))
             words = words.union(w)
-        debug('Found {} words so far'.format(len(words)))
+            debug('Found {} words so far'.format(len(words)))
 
     print('There are {} different conjugation table styles'.format(len(words)))
-    print('\n'.join(words))
+    print('\n\n'.join(words))
 
 
 if __name__ == '__main__':
