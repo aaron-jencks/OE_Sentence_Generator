@@ -1,6 +1,7 @@
 from soup_targets import soup_targets, wiktionary_root
 from controllers.beautifulsoup import SoupVerbHeaderScraper
 from controllers.ui import debug
+from utils.web import use_unverified_ssl
 
 
 def find_different_conjugation_tables():
@@ -31,4 +32,5 @@ def find_different_conjugation_tables():
 
 
 if __name__ == '__main__':
+    use_unverified_ssl()
     find_different_conjugation_tables()
