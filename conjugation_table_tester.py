@@ -7,6 +7,8 @@ from utils.web import use_unverified_ssl
 def find_different_conjugation_tables():
     words = set()
     conj_table = set()
+    word_dict = {}
+
     debug('Searching for verbs')
     for s, url in soup_targets['verbs'].items():
         debug('Searching for {}'.format(s))
@@ -29,6 +31,9 @@ def find_different_conjugation_tables():
 
     print('There are {} different conjugation table styles'.format(len(words)))
     print('\n\n'.join(words))
+
+    with open('./table_types.txt', 'w+') as fp:
+        fp.write('\n\n'.join(words))
 
 
 if __name__ == '__main__':
