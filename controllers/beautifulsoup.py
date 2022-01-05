@@ -267,13 +267,14 @@ class SoupVerbHeaderScraper(SoupStemScraper):
                                 self.table_set.add(tbl.text)
                                 tbl_tag = tbl.find_next('table')
                                 rows = tbl_tag.find_all('tr')
-                                for r in rows:
+                                for ri, r in enumerate(rows):
                                     data = r.findAll(['th', 'td'])
                                     for element in data:
                                         if element.name == 'th':
-                                            conjs += element.text.replace('\n', '')
+                                            conjs += element.text.replace('\n', '') + '\t'
                                         else:
-                                            conjs += '_'
+                                            conjs += '_\t'
+                                    conjs += '\n'
                         return conjs
                     else:
                         debug('{} has no conjugations.'.format(word))
