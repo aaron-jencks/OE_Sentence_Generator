@@ -11,10 +11,11 @@ import os
 from controllers.ui import error, debug
 from soup_targets import wiktionary_root
 from settings import cache_html, offline_mode, html_cache_path
+from utils.web import prepare_filename
 
 
 def simple_get(url: str) -> bytes:
-    fname = url[8:].replace('/', '.').replace(':', '') + '.html'
+    fname = prepare_filename(url)
     fpath = path.join(html_cache_path, fname)
 
     if offline_mode or (path.exists(fpath) and cache_html):
