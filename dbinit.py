@@ -52,6 +52,51 @@ def convert_word_dictionary_noun(words: List[Dict[str, Union[List[str],
     return {'old_english_words': roots, 'declensions': declensions}
 
 
+def convert_word_dictionary_verb(words: List[Dict[str, Union[List[str],
+                                                             List[Dict[str,
+                                                                       Union[str, Dict[str, str]]]],
+                                                             str]]]) -> Dict[str, List[tuple]]:
+    """
+    :param words: List of dictionaries to be converted
+    {
+    'word': word,
+    'definitions': List of definitions,
+    'conjugations': A List of conjugation dictionaries
+    Conjugation dictionaries: {
+        'INFINITIVE': {  If this string is present, then there is no person or plurality or mood
+            'can': The can form of the infinitive
+            'to': The to form of the infinitive
+        },
+        'person': The current person,
+        'plurality': The current plurality,
+        'past': The past tense form,
+        'present': The present tense form,
+        'all tenses': Represents all of the different forms, there is no past or present tense if this string exists,
+        'participle': The participle form
+    }
+    }
+    :return: Returns a dictionary with each key corresponding to a table and it's value a list of data to insert
+    """
+
+    debug('Converting Noun dictionaries')
+    roots = []
+    declensions = []
+
+    for w in tqdm(words):
+        for d in w['definitions']:
+            roots.append((db_string(w['word']), '"noun"', db_string(d),
+                          w['word'].startswith('-') or w['word'].endswith('-')))  # Check for affix
+
+        for c, d in w.items():
+            if c not in ['word', 'definitions']:
+                # c is a case
+                for p, v in d.items():
+                    declensions.append((db_string(v), w['word'],
+                                        db_string(p.lower()), db_string(c.lower())))
+
+    return {'old_english_words': roots, 'declensions': declensions}
+
+
 conversion_dict = {
     'nouns': convert_word_dictionary_noun
 }
@@ -60,13 +105,14 @@ conversion_dict = {
 def initialize_database_scraper():
     from soup_targets import soup_targets, wiktionary_root
     from controllers.sql import SQLController
-    from controllers.beautifulsoup import SoupStemScraper
+    from controllers.beautifulsoup import SoupStemScraper, SoupVerbClassScraper
 
     cont = SQLController.get_instance()
     cont.reset_database()
     cont.setup_tables()
 
     noun_declension_tables = set()
+    verb_conjugation_tables = set()
     roots = []
     declensions = []
     for t, u in soup_targets.items():
@@ -77,13 +123,23 @@ def initialize_database_scraper():
             if isinstance(url, dict):
                 for g, gurl in url.items():
                     debug('Checking for {}'.format(g))
-                    scraper = SoupStemScraper(wiktionary_root + '/wiki/' + gurl, s,
-                                              initial_table_set=noun_declension_tables)
+                    scraper = None
+                    if t == 'nouns':
+                        scraper = SoupStemScraper(wiktionary_root + '/wiki/' + gurl, s,
+                                                  initial_table_set=noun_declension_tables)
+                    elif t == 'verbs':
+                        scraper = SoupVerbClassScraper(wiktionary_root + '/wiki/' + gurl, s,
+                                                       initial_table_set=verb_conjugation_tables)
                     words += scraper.find_words()
                     noun_declension_tables = scraper.table_set
             else:
-                scraper = SoupStemScraper(wiktionary_root + '/wiki/' + url, s,
-                                          initial_table_set=noun_declension_tables)
+                scraper = None
+                if t == 'nouns':
+                    scraper = SoupStemScraper(wiktionary_root + '/wiki/' + url, s,
+                                              initial_table_set=noun_declension_tables)
+                elif t == 'verbs':
+                    scraper = SoupVerbClassScraper(wiktionary_root + '/wiki/' + url, s,
+                                                   initial_table_set=verb_conjugation_tables)
                 words += scraper.find_words()
                 noun_declension_tables = scraper.table_set
             debug('Found {} words so far'.format(len(words)))
