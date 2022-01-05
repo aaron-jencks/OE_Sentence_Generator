@@ -5,16 +5,36 @@ from typing import Union, List, Dict, Tuple
 from tqdm import tqdm
 import re
 import math
+import os.path as path
+import os
 
 from controllers.ui import error, debug
 from soup_targets import wiktionary_root
+from settings import cache_html, offline_mode, html_cache_path
 
 
-def simple_get(url: str) -> str:
+def simple_get(url: str) -> bytes:
+    fname = url[8:].replace('/', '.').replace(':', '') + '.html'
+    fpath = path.join(html_cache_path, fname)
+
+    if offline_mode or (path.exists(fpath) and cache_html):
+        if path.exists(fpath):
+            with open(fpath, 'rb') as fp:
+                return fp.read()
+        else:
+            error('URL {} doesn\'t exist in html cache for offline mode'.format(url))
+
     req = request.Request(url)
     try:
         with request.urlopen(req) as resp:
-            return resp.read()
+            html = resp.read()
+            if cache_html:
+                if not path.exists(html_cache_path):
+                    os.makedirs(html_cache_path, exist_ok=True)
+
+                with open(fpath, 'wb+') as fp:
+                    fp.write(html)
+            return html
     except HTTPError as e:
         error('URL {} had an error {} {}'.format(url, e.code, e.read()))
 
