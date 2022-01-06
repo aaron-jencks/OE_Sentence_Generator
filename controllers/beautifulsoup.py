@@ -261,6 +261,10 @@ class SoupVerbHeaderScraper(SoupStemScraper):
                     header = header.find_next('span', attrs={'id': re.compile('(Conjugation|Declension).*')})
 
                     if header is not None:
+                        # TODO Find a way to limit the table search to only this section
+                        # Perhaps look at the next span search for another table and
+                        # only accept tables that come before the table that would be equivalent to that one in the list
+                        
                         tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})]
                         for tbl in tables:
                             if tbl.text not in self.table_set:
@@ -295,7 +299,8 @@ class SoupVerbHeaderScraper(SoupStemScraper):
             tpc = math.ceil(total_count / 200) if page_count is not None else 1
             debug('Found {} words over {} pages'.format(page_count['total'] if page_count is not None else 1, tpc))
 
-            self.word_list = set()
+            self.word_list = []
+            word_set = set()
             page_soup = self.soup
             for p in range(tpc if self.all_pages else 1):
                 next_link = page_soup.find('a', text='next page')
@@ -310,7 +315,9 @@ class SoupVerbHeaderScraper(SoupStemScraper):
                     page = wiktionary_root + '/' + link
                     declensions = self.lookup_word_declensions(li.text, page)
                     if declensions is not None:
-                        self.word_list.add(declensions)
+                        if declensions not in word_set:
+                            word_set.add(declensions)
+                            self.word_list.append((li.text, declensions))
                     else:
                         debug('{} did not have any forms'.format(li.text))
                 if next_url is not None:
