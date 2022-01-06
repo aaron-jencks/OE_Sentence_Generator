@@ -1,26 +1,3 @@
-
-
-infinitive	_	_	
-indicative mood	present tense	past tense	
-first person singular	_	_	
-second person singular	_	_	
-third person singular	_	_	
-plural	_	_	
-subjunctive	present tense	past tense	
-singular	_	_	
-plural	_	_	
-imperative		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-Case	Singular	Plural	
-nominative	_	_	
-accusative	_	_	
-genitive	_	_	
-dative	_	_	
-
-
 infinitive	_	_	
 indicative mood	present tense	past tense	
 first person singular	_	_	
@@ -36,6 +13,40 @@ plural	_
 participle	present	past	
 	_	_	
 
+swogan
+
+infinitive	_	_	
+indicative mood	present tense	past tense	
+first person singular	_	_	
+second person singular	_	_	
+third person singular	_	_	
+plural	_	_	
+subjunctive	present tense	past tense	
+singular	_	_	
+plural	_	_	
+imperative		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+infinitive	_	
+indicative	present	past	
+1st person singular	_	_	
+2nd person singular	_	_	
+3rd person singular	_	_	
+plural	_	_	
+subjunctive	present	past	
+1st person singular	_	_	
+2nd person singular	_	_	
+3rd person singular	_	_	
+plural	_	_	
+imperative	present		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+
+munan
 
 infinitive	_	_	
 indicative mood	present tense	past tense	
@@ -60,68 +71,7 @@ instrumental	_	_
 locative	_	_	
 vocative	_	_	
 
-
-infinitive	_	_	
-indicative mood	present tense	past tense	
-first person singular	_	_	
-second person singular	_	_	
-third person singular	_	_	
-plural	_	_	
-subjunctive	present tense	past tense	
-singular	_	_	
-plural	_	_	
-imperative		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-infinitive	_	_	
-indicative mood	present tense	past tense	
-first person singular	_	_	
-second person singular	_	_	
-third person singular	_	_	
-plural	_	_	
-subjunctive	present tense	past tense	
-singular	_	_	
-plural	_	_	
-imperative		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-infinitive	_	
-indicative	present	past	
-1st person singular	_	_	
-2nd person singular	_	_	
-3rd person singular	_	_	
-plural	_	_	
-subjunctive	present	past	
-1st person singular	_	_	
-2nd person singular	_	_	
-3rd person singular	_	_	
-plural	_	_	
-imperative	present		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-infinitive	_	
-indicative	present	past	
-1st person singular	_	_	
-2nd person singular	_	_	
-3rd person singular	_	_	
-plural	_	_	
-subjunctive	present	past	
-1st person singular	_	_	
-2nd person singular	_	_	
-3rd person singular	_	_	
-plural	_	_	
-imperative	present		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-
+nagan
 
 infinitive	_	_	
 indicative mood	present tense	past tense	
@@ -154,14 +104,46 @@ plural	_
 participle	present	past	
 	_	_	
 	singular	plural	
-_	_	_	
-_	_	_	
-_	_	_	
-_	_	_	
-_	_	_	
-_	_	_	
-_	_	_	
+_	indefinite articulation	definite articulation	indefinite articulation	definite articulation	
+nominative/accusative	_	_	_	_	
+genitive/dative	_	_	_	_	
+vocative	_	_	
 
+motan
+
+
+þurfan
+
+infinitive	_	_	
+indicative mood	present tense	past tense	
+first person singular	_	_	
+second person singular	_	_	
+third person singular	_	_	
+plural	_	_	
+subjunctive	present tense	past tense	
+singular	_	_	
+plural	_	_	
+imperative		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+infinitive	_	_	
+indicative mood	present tense	past tense	
+first person singular	_	_	
+second person singular	_	_	
+third person singular	_	_	
+plural	_	_	
+subjunctive	present tense	past tense	
+singular	_	_	
+plural	_	_	
+imperative		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+
+agan
 
 infinitive	_	_	
 indicative mood	present tense	past tense	
@@ -207,52 +189,25 @@ singular	_
 plural	_	
 participle	present	past	
 	_	_	
-
-
-infinitive	_	_	
-indicative mood	present tense	past tense	
-first person singular	_	_	
-second person singular	_	_	
-third person singular	_	_	
+infinitive	_	
+indicative	present	past	
+1st person singular	_	_	
+2nd person singular	_	_	
+3rd person singular	_	_	
 plural	_	_	
-subjunctive	present tense	past tense	
-singular	_	_	
+subjunctive	present	past	
+1st person singular	_	_	
+2nd person singular	_	_	
+3rd person singular	_	_	
 plural	_	_	
-imperative		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-infinitive	_	_	
-indicative mood	present tense	past tense	
-first person singular	_	_	
-second person singular	_	_	
-third person singular	_	_	
-plural	_	_	
-subjunctive	present tense	past tense	
-singular	_	_	
-plural	_	_	
-imperative		
+imperative	present		
 singular	_	
 plural	_	
 participle	present	past	
 	_	_	
 
+witan
 
-infinitive	_	_	
-indicative mood	present tense	past tense	
-first person singular	_	_	
-second person singular	_	_	
-third person singular	_	_	
-plural	_	_	
-subjunctive	present tense	past tense	
-singular	_	_	
-plural	_	_	
-imperative		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
 infinitive	_	_	
 indicative mood	present tense	past tense	
 first person singular	_	_	
@@ -272,22 +227,26 @@ indicative	present	past
 1st person singular	_	_	
 2nd person singular	_	_	
 3rd person singular	_	_	
-1st person plural	_	_	
-2nd person plural	_	_	
-3rd person plural	_	_	
+plural	_	_	
 subjunctive	present	past	
 1st person singular	_	_	
 2nd person singular	_	_	
 3rd person singular	_	_	
-1st person plural	_	_	
-2nd person plural	_	_	
-3rd person plural	_	_	
+plural	_	_	
 imperative	present		
 singular	_	
 plural	_	
 participle	present	past	
 	_	_	
+	singular	plural	
+nominative	_	_	
+genitive	_	_	
+dative	_	_	
+accusative	_	_	
+vocative 1	_	_	
+predicative 2	_	_	
 
+dugan
 
 infinitive	_	_	
 indicative mood	present tense	past tense	
@@ -349,6 +308,58 @@ First person	_	_
 Second person	_	_	
 Third person	_	_	
 
+gan
+
+infinitive	_	_	
+indicative mood	present tense	past tense	
+first person singular	_	_	
+second person singular	_	_	
+third person singular	_	_	
+plural	_	_	
+subjunctive	present tense	past tense	
+singular	_	_	
+plural	_	_	
+imperative		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+infinitive	_	_	
+indicative mood	present tense	past tense	
+first person singular	_	_	
+second person singular	_	_	
+third person singular	_	_	
+plural	_	_	
+subjunctive	present tense	past tense	
+singular	_	_	
+plural	_	_	
+imperative		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+infinitive	_	
+indicative	present	past	
+1st person singular	_	_	
+2nd person singular	_	_	
+3rd person singular	_	_	
+1st person plural	_	_	
+2nd person plural	_	_	
+3rd person plural	_	_	
+subjunctive	present	past	
+1st person singular	_	_	
+2nd person singular	_	_	
+3rd person singular	_	_	
+1st person plural	_	_	
+2nd person plural	_	_	
+3rd person plural	_	_	
+imperative	present		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+
+wesan
 
 infinitive	_	_	
 indicative mood	present tense	past tense	
@@ -445,6 +456,7 @@ vocative	_	_	_
 locative	_	_	_	
 instrumental	_	_	_	
 
+bitan
 
 infinitive	_	_	
 indicative mood	present tense	past tense	
@@ -456,36 +468,6 @@ subjunctive	present tense	past tense
 singular	_	_	
 plural	_	_	
 imperative		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-infinitive	_	_	
-indicative mood	present tense	past tense	
-first person singular	_	_	
-second person singular	_	_	
-third person singular	_	_	
-plural	_	_	
-subjunctive	present tense	past tense	
-singular	_	_	
-plural	_	_	
-imperative		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-infinitive	_	
-indicative	present	past	
-1st person singular	_	_	
-2nd person singular	_	_	
-3rd person singular	_	_	
-plural	_	_	
-subjunctive	present	past	
-1st person singular	_	_	
-2nd person singular	_	_	
-3rd person singular	_	_	
-plural	_	_	
-imperative	present		
 singular	_	
 plural	_	
 participle	present	past	
@@ -495,15 +477,10 @@ nominative	_	_
 genitive	_	_	
 dative	_	_	
 accusative	_	_	
-instrumental	_	_	
-locative	_	_	
-vocative	_	_	
-	singular	
-_	indefinite articulation	definite articulation	
-nominative/accusative	_	_	
-genitive/dative	_	_	
-vocative	_	
+vocative 1	_	_	
+predicative 2	_	_	
 
+leon
 
 infinitive	_	_	
 indicative mood	present tense	past tense	
@@ -540,6 +517,7 @@ plural	_
 participle	present	past	
 	_	_	
 
+risan
 
 infinitive	_	_	
 indicative mood	present tense	past tense	
@@ -548,6 +526,108 @@ second person singular	_	_
 third person singular	_	_	
 plural	_	_	
 subjunctive	present tense	past tense	
+singular	_	_	
+plural	_	_	
+imperative		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+infinitive	_	_	
+indicative mood	present tense	past tense	
+first person singular	_	_	
+second person singular	_	_	
+third person singular	_	_	
+plural	_	_	
+subjunctive	present tense	past tense	
+singular	_	_	
+plural	_	_	
+imperative		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+infinitive	_	_	
+indicative mood	present tense	past tense	
+first person singular	_	_	
+second person singular	_	_	
+third person singular	_	_	
+plural	_	_	
+subjunctive	present tense	past tense	
+singular	_	_	
+plural	_	_	
+imperative		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+
+teon
+
+infinitive	_	_	
+indicative mood	present tense	past tense	
+first person singular	_	_	
+second person singular	_	_	
+third person singular	_	_	
+plural	_	_	
+subjunctive	present tense	past tense	
+singular	_	_	
+plural	_	_	
+imperative		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+infinitive	_	
+indicative	present	past	
+1st person singular	_	_	
+2nd person singular	_	_	
+3rd person singular	_	_	
+1st person plural	_	_	
+2nd person plural	_	_	
+3rd person plural	_	_	
+subjunctive	present	past	
+1st person singular	_	_	
+2nd person singular	_	_	
+3rd person singular	_	_	
+1st person plural	_	_	
+2nd person plural	_	_	
+3rd person plural	_	_	
+imperative	present		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+infinitive	_	
+indicative	present	past	
+1st person singular	_	_	
+2nd person singular	_	_	
+3rd person singular	_	_	
+1st person plural	_	_	
+2nd person plural	_	_	
+3rd person plural	_	_	
+subjunctive	present	past	
+1st person singular	_	_	
+2nd person singular	_	_	
+3rd person singular	_	_	
+1st person plural	_	_	
+2nd person plural	_	_	
+3rd person plural	_	_	
+imperative	present		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+
+findan
+
+infinitive	_	_	
+indicative	present	past	
+1st-person singular	_	_	
+2nd-person singular	_	_	
+3rd-person singular	_	_	
+plural	_	_	
+subjunctive	present	past	
 singular	_	_	
 plural	_	_	
 imperative		
@@ -571,56 +651,8 @@ singular	_
 plural	_	
 participle	present	past	
 	_	_	
-	singular	plural	
-_	indefinite articulation	definite articulation	indefinite articulation	definite articulation	
-nominative/accusative	_	_	_	_	
-genitive/dative	_	_	_	_	
-vocative	_	_	
 
-
-infinitive	_	_	
-indicative mood	present tense	past tense	
-first person singular	_	_	
-second person singular	_	_	
-third person singular	_	_	
-plural	_	_	
-subjunctive	present tense	past tense	
-singular	_	_	
-plural	_	_	
-imperative		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-infinitive	_	_	
-indicative mood	present tense	past tense	
-first person singular	_	_	
-second person singular	_	_	
-third person singular	_	_	
-plural	_	_	
-subjunctive	present tense	past tense	
-singular	_	_	
-plural	_	_	
-imperative		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-infinitive	_	_	
-indicative mood	present tense	past tense	
-first person singular	_	_	
-second person singular	_	_	
-third person singular	_	_	
-plural	_	_	
-subjunctive	present tense	past tense	
-singular	_	_	
-plural	_	_	
-imperative		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-
+fregnan
 
 infinitive	_	_	
 indicative	present	past	
@@ -637,6 +669,7 @@ plural	_
 participle	present	past	
 	_	_	
 
+frinan
 
 infinitive	_	_	
 indicative mood	present tense	past tense	
@@ -682,7 +715,82 @@ nominative/accusative	_	_
 genitive/dative	_	_	
 vocative	_	
 
+etan
 
+infinitive	_	_	
+indicative mood	present tense	past tense	
+first person singular	_	_	
+second person singular	_	_	
+third person singular	_	_	
+plural	_	_	
+subjunctive	present tense	past tense	
+singular	_	_	
+plural	_	_	
+imperative		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+infinitive	_	_	
+indicative mood	present tense	past tense	
+first person singular	_	_	
+second person singular	_	_	
+third person singular	_	_	
+plural	_	_	
+subjunctive	present tense	past tense	
+singular	_	_	
+plural	_	_	
+imperative		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+infinitive	_	
+indicative	present	past	
+1st person singular	_	_	
+2nd person singular	_	_	
+3rd person singular	_	_	
+plural	_	_	
+subjunctive	present	past	
+1st person singular	_	_	
+2nd person singular	_	_	
+3rd person singular	_	_	
+plural	_	_	
+imperative	present		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+	singular	plural	
+nominative	_	_	
+genitive	_	_	
+dative	_	_	
+accusative	_	_	
+instrumental	_	_	
+locative	_	_	
+vocative	_	_	
+	singular	
+_	indefinite articulation	definite articulation	
+nominative/accusative	_	_	
+genitive/dative	_	_	
+vocative	_	
+
+metan
+
+infinitive	_	_	
+indicative mood	present tense	past tense	
+first person singular	_	_	
+second person singular	_	_	
+third person singular	_	_	
+plural	_	_	
+subjunctive	present tense	past tense	
+singular	_	_	
+plural	_	_	
+imperative		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
 infinitive	_	_	
 indicative mood	present tense	past tense	
 first person singular	_	_	
@@ -714,6 +822,115 @@ plural	_
 participle	present	past	
 	_	_	
 
+nesan
+
+infinitive	_	_	
+indicative mood	present tense	past tense	
+first person singular	_	_	
+second person singular	_	_	
+third person singular	_	_	
+plural	_	_	
+subjunctive	present tense	past tense	
+singular	_	_	
+plural	_	_	
+imperative		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+Case	Singular	Plural	
+nominative	_	_	
+accusative	_	_	
+genitive	_	_	
+dative	_	_	
+
+sceaþan
+
+infinitive	_	_	
+indicative mood	present tense	past tense	
+first person singular	_	_	
+second person singular	_	_	
+third person singular	_	_	
+plural	_	_	
+subjunctive	present tense	past tense	
+singular	_	_	
+plural	_	_	
+imperative		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+infinitive	_	
+indicative	present	past	
+1st person singular	_	_	
+2nd person singular	_	_	
+3rd person singular	_	_	
+plural	_	_	
+subjunctive	present	past	
+1st person singular	_	_	
+2nd person singular	_	_	
+3rd person singular	_	_	
+plural	_	_	
+imperative	present		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+	singular	plural	
+_	_	_	
+_	_	_	
+_	_	_	
+_	_	_	
+_	_	_	
+_	_	_	
+_	_	_	
+
+dragan
+
+infinitive	_	_	
+indicative mood	present tense	past tense	
+first person singular	_	_	
+second person singular	_	_	
+third person singular	_	_	
+plural	_	_	
+subjunctive	present tense	past tense	
+singular	_	_	
+plural	_	_	
+imperative		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+	singular	plural	
+		masculine	neuter	feminine	masculine	neuter	feminine	
+nominative/  accusative	indefinite	_	_	_	_	
+definite	_	_	_	_	
+genitive/  dative	indefinite	_	_	_	_	
+definite	_	_	_	_	
+
+afon
+
+infinitive	_	_	
+indicative mood	present tense	past tense	
+first person singular	_	_	
+second person singular	_	_	
+third person singular	_	_	
+plural	_	_	
+subjunctive	present tense	past tense	
+singular	_	_	
+plural	_	_	
+imperative		
+singular	_	
+plural	_	
+participle	present	past	
+	_	_	
+	singular	plural	
+_	indefinite articulation	definite articulation	indefinite articulation	definite articulation	
+nominative/accusative	_	_	_	_	
+genitive/dative	_	_	_	_	
+vocative	_	_	
+
+fon
 
 infinitive	_	_	
 indicative mood	present tense	past tense	
@@ -770,195 +987,5 @@ reflexive	_	_	_	_	_
 3rd person (medial)	_	_	_	
 3rd person (final)	_	_	_	
 
+hon
 
-infinitive	_	_	
-indicative mood	present tense	past tense	
-first person singular	_	_	
-second person singular	_	_	
-third person singular	_	_	
-plural	_	_	
-subjunctive	present tense	past tense	
-singular	_	_	
-plural	_	_	
-imperative		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-infinitive	_	
-indicative	present	past	
-1st person singular	_	_	
-2nd person singular	_	_	
-3rd person singular	_	_	
-1st person plural	_	_	
-2nd person plural	_	_	
-3rd person plural	_	_	
-subjunctive	present	past	
-1st person singular	_	_	
-2nd person singular	_	_	
-3rd person singular	_	_	
-1st person plural	_	_	
-2nd person plural	_	_	
-3rd person plural	_	_	
-imperative	present		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-infinitive	_	
-indicative	present	past	
-1st person singular	_	_	
-2nd person singular	_	_	
-3rd person singular	_	_	
-1st person plural	_	_	
-2nd person plural	_	_	
-3rd person plural	_	_	
-subjunctive	present	past	
-1st person singular	_	_	
-2nd person singular	_	_	
-3rd person singular	_	_	
-1st person plural	_	_	
-2nd person plural	_	_	
-3rd person plural	_	_	
-imperative	present		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-
-
-infinitive	_	_	
-indicative mood	present tense	past tense	
-first person singular	_	_	
-second person singular	_	_	
-third person singular	_	_	
-plural	_	_	
-subjunctive	present tense	past tense	
-singular	_	_	
-plural	_	_	
-imperative		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-	singular	plural	
-nominative	_	_	
-genitive	_	_	
-dative	_	_	
-accusative	_	_	
-vocative 1	_	_	
-predicative 2	_	_	
-
-
-infinitive	_	_	
-indicative	present	past	
-1st-person singular	_	_	
-2nd-person singular	_	_	
-3rd-person singular	_	_	
-plural	_	_	
-subjunctive	present	past	
-singular	_	_	
-plural	_	_	
-imperative		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-infinitive	_	
-indicative	present	past	
-1st person singular	_	_	
-2nd person singular	_	_	
-3rd person singular	_	_	
-plural	_	_	
-subjunctive	present	past	
-1st person singular	_	_	
-2nd person singular	_	_	
-3rd person singular	_	_	
-plural	_	_	
-imperative	present		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-
-
-infinitive	_	_	
-indicative mood	present tense	past tense	
-first person singular	_	_	
-second person singular	_	_	
-third person singular	_	_	
-plural	_	_	
-subjunctive	present tense	past tense	
-singular	_	_	
-plural	_	_	
-imperative		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-	singular	plural	
-_	indefinite articulation	definite articulation	indefinite articulation	definite articulation	
-nominative/accusative	_	_	_	_	
-genitive/dative	_	_	_	_	
-vocative	_	_	
-
-
-infinitive	_	_	
-indicative mood	present tense	past tense	
-first person singular	_	_	
-second person singular	_	_	
-third person singular	_	_	
-plural	_	_	
-subjunctive	present tense	past tense	
-singular	_	_	
-plural	_	_	
-imperative		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-infinitive	_	
-indicative	present	past	
-1st person singular	_	_	
-2nd person singular	_	_	
-3rd person singular	_	_	
-plural	_	_	
-subjunctive	present	past	
-1st person singular	_	_	
-2nd person singular	_	_	
-3rd person singular	_	_	
-plural	_	_	
-imperative	present		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-	singular	plural	
-nominative	_	_	
-genitive	_	_	
-dative	_	_	
-accusative	_	_	
-vocative 1	_	_	
-predicative 2	_	_	
-
-
-infinitive	_	_	
-indicative mood	present tense	past tense	
-first person singular	_	_	
-second person singular	_	_	
-third person singular	_	_	
-plural	_	_	
-subjunctive	present tense	past tense	
-singular	_	_	
-plural	_	_	
-imperative		
-singular	_	
-plural	_	
-participle	present	past	
-	_	_	
-	singular	plural	
-		masculine	neuter	feminine	masculine	neuter	feminine	
-nominative/  accusative	indefinite	_	_	_	_	
-definite	_	_	_	_	
-genitive/  dative	indefinite	_	_	_	_	
-definite	_	_	_	_	
