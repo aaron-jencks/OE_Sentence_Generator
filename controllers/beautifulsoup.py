@@ -246,10 +246,10 @@ class SoupVerbClassScraper(SoupStemScraper):
 
 
 class SoupVerbHeaderScraper(SoupStemScraper):
-    def lookup_word_declensions(self, word: str, url: str) -> Union[str, None]:
+    def lookup_word_declensions(self, word: str, url: str) -> Union[List[str], None]:
         resp = simple_get(url)
         if resp is not None:
-            conjs = ''
+            conjs = []
             w_soup = BeautifulSoup(resp, 'html.parser')
 
             header = w_soup.find('span', attrs={'id': 'Old_English'})
@@ -264,9 +264,23 @@ class SoupVerbHeaderScraper(SoupStemScraper):
                         # TODO Find a way to limit the table search to only this section
                         # Perhaps look at the next span search for another table and
                         # only accept tables that come before the table that would be equivalent to that one in the list
-                        
+
                         tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})]
+
+                        next_span = header.find_next('span', attrs={'class': 'mw-headline'})
+                        if next_span is not None:
+                            spans_table = next_span.find_next('div', attrs={'class': 'NavHead'})
+                            if spans_table is not None:
+                                new_tables = []
+                                for tbl in tables:
+                                    if tbl.text == spans_table.text:
+                                        break
+                                    else:
+                                        new_tables.append(tbl)
+                                tables = new_tables
+
                         for tbl in tables:
+                            conj = ''
                             if tbl.text not in self.table_set:
                                 self.table_set.add(tbl.text)
                                 tbl_tag = tbl.find_next('table')
@@ -275,11 +289,12 @@ class SoupVerbHeaderScraper(SoupStemScraper):
                                     data = r.findAll(['th', 'td'])
                                     for element in data:
                                         if element.name == 'th':
-                                            conjs += element.text.replace('\n', '') + '\t'
+                                            conj += element.text.replace('\n', '') + '\t'
                                         else:
-                                            conjs += '_\t'
-                                    conjs += '\n'
-                        return conjs
+                                            conj += '_\t'
+                                    conj += '\n'
+                                conjs.append(conj)
+                        return conjs if len(conjs) > 0 else None
                     else:
                         debug('{} has no conjugations.'.format(word))
                 else:
@@ -315,11 +330,10 @@ class SoupVerbHeaderScraper(SoupStemScraper):
                     page = wiktionary_root + '/' + link
                     declensions = self.lookup_word_declensions(li.text, page)
                     if declensions is not None:
-                        if declensions not in word_set:
-                            word_set.add(declensions)
-                            self.word_list.append((li.text, declensions))
-                    else:
-                        debug('{} did not have any forms'.format(li.text))
+                        for decl in declensions:
+                            if decl not in word_set:
+                                word_set.add(decl)
+                                self.word_list.append((li.text, decl))
                 if next_url is not None:
                     phtml = simple_get(next_url)
                     if phtml is not None:
