@@ -40,6 +40,10 @@ def simple_get(url: str) -> bytes:
         error('URL {} had an error {} {}'.format(url, e.code, e.read()))
 
 
+def table_parsing(table: BeautifulSoup, parsings: List[Tuple[str, int, int]]) -> Dict[str, str]:
+    pass
+
+
 class SoupStemScraper:
     def __init__(self, url: str, stem_type: str, all_pages: bool = True, initial_table_set: set = None):
         self.url = url
@@ -196,6 +200,19 @@ class SoupVerbClassScraper(SoupStemScraper):
 
                     if header is not None:
                         tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})]
+
+                        next_span = header.find_next('span', attrs={'class': 'mw-headline'})
+                        if next_span is not None:
+                            spans_table = next_span.find_next('div', attrs={'class': 'NavHead'})
+                            if spans_table is not None:
+                                new_tables = []
+                                for tbl in tables:
+                                    if tbl.text == spans_table.text:
+                                        break
+                                    else:
+                                        new_tables.append(tbl)
+                                tables = new_tables
+
                         for tbl in tables:
                             if tbl.text not in self.table_set:
                                 self.table_set.add(tbl.text)
@@ -234,7 +251,7 @@ class SoupVerbClassScraper(SoupStemScraper):
                                                                                         current_mood,
                                                                                         current_tense_order))
                                     conjs['conjugations'].append(data_dict)
-                                    conjugations.append(conjs)
+                                conjugations.append(conjs)
                         return conjugations
                     else:
                         debug('{} has no conjugations.'.format(word))
