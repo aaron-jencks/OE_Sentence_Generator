@@ -115,7 +115,7 @@ def convert_word_dictionary_verb(words: List[Dict[str, Union[List[str],
                 if len(tags) == 2:
                     if tags[0] == 'imperative':
                         emood = db_string(tags[0].lower())
-                        etense = db_string(tags[1].lower())
+                        plurality = db_string(tags[1].lower())
                     elif tags[0] == 'infinitive':
                         is_infinitive = True
                         is_participle = tags[1] == 'can'
