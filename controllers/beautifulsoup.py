@@ -158,6 +158,28 @@ class SoupStemScraper:
 
 
 class SoupVerbClassScraper(SoupStemScraper):
+
+    table_parsing_key = [
+        ('infinitive can', 0, 1),
+        ('infinitive to', 0, 2),
+        ('indicative 1st singular present', 2, 1),
+        ('indicative 1st singular past', 2, 2),
+        ('indicative 2nd singular present', 3, 1),
+        ('indicative 2nd singular past', 3, 2),
+        ('indicative 3rd singular present', 4, 1),
+        ('indicative 3rd singular past', 4, 2),
+        ('indicative plural present', 5, 1),
+        ('indicative plural past', 5, 2),
+        ('subjunctive singular present', 7, 1),
+        ('subjunctive singular past', 7, 2),
+        ('subjunctive plural present', 8, 1),
+        ('subjunctive plural past', 8, 2),
+        ('imperative singular', 9, 1),
+        ('imperative plural', 10, 1),
+        ('present participle', 12, 1),
+        ('past participle', 12, 2)
+    ]
+
     @staticmethod
     def parse_tense(t: str) -> str:
         m = re.match(r'(?P<tense>(past|present))(\stense)?', t)
@@ -230,40 +252,9 @@ class SoupVerbClassScraper(SoupStemScraper):
                                 self.table_set.add(tbl.text)
                                 tbl_tag = tbl.find_next('table')
 
-                                rows = tbl_tag.find_all('tr')
-                                current_mood = ''
-                                current_tense_order = []
-                                for r in rows:
-                                    data_dict = {}
-
-                                    head = r.findAll('th')
-                                    data = r.findAll('td')
-                                    if len(head) > 1:
-                                        # Found a header row
-                                        m, t1, t2 = head
-                                        current_mood = m.text.replace('\n', '')
-                                        current_tense_order = [self.parse_tense(t1.text), self.parse_tense(t2.text)]
-                                    elif len(head) == 1:
-                                        # Found something with a person and plurality
-                                        if head[0].text.replace('\n', '') == 'infinitive':
-                                            data_dict['INFINITIVE'] = {
-                                                'can': data[0].text,
-                                                'to': data[1].text
-                                            }
-                                        else:
-                                            person, plurality = self.parse_person_plurality(head[0].text)
-                                            data_dict[current_mood] = {'person': person, 'plurality': plurality}
-                                            if len(data) > 1:
-                                                for tense, d in zip(current_tense_order, data):
-                                                    data_dict[tense] = d.text
-                                            elif len(data) == 1:
-                                                data_dict['all tenses'] = data[0].text
-                                            else:
-                                                debug('{} had no data for {} {}'.format(word,
-                                                                                        current_mood,
-                                                                                        current_tense_order))
-                                    conjs['conjugations'].append(data_dict)
-                                conjugations.append(conjs)
+                                data_dict = table_parsing(tbl_tag, self.table_parsing_key)
+                                conjugations.append(data_dict)
+                                
                         return conjugations
                     else:
                         debug('{} has no conjugations.'.format(word))
