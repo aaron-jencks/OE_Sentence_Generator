@@ -34,6 +34,13 @@ class Noun:
 
         return [index[0] for index in indices]
 
+    @property
+    def meaning(self) -> List[str]:
+        cont = SQLController.get_instance()
+        definitions = cont.select_conditional('old_english_words', 'definition',
+                                              'id in ({})'.format(str(self.index)[1:-1]))
+        return definitions
+
     def get_declension(self) -> str:
         cont = SQLController.get_instance()
 
@@ -124,6 +131,13 @@ class Verb:
             return [-1]
 
         return [index[0] for index in indices]
+
+    @property
+    def meaning(self) -> List[str]:
+        cont = SQLController.get_instance()
+        definitions = cont.select_conditional('old_english_words', 'definition',
+                                              'id in ({})'.format(str(self.index)[1:-1]))
+        return definitions
 
     def get_conjugation(self) -> str:
         cont = SQLController.get_instance()
