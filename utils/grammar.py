@@ -86,3 +86,12 @@ class Gender(enum.Enum):
     FEMININE = 1
     NEUTER = 2
     NONE = 3
+
+
+class WordOrder(enum.Enum):
+    SVO = 0
+    SOV = 1
+    OSV = 2
+    VSO = 3
+    VOS = 4
+    OVS = 5
