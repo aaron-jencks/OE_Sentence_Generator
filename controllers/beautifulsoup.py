@@ -48,7 +48,7 @@ def table_parsing(table: BeautifulSoup, parsings: List[Tuple[str, int, int]]) ->
             r = rows[row]
             columns = r.findAll(['th', 'td'])
             if col < len(columns):
-                result[name] = columns[col].text
+                result[name] = columns[col].text.strip()
             else:
                 debug('Index {} doesn\'t exist in row {} for table with {} columns'.format(col, name, len(columns)))
         else:
@@ -95,19 +95,22 @@ class SoupStemScraper:
                             if tbl.text not in self.table_set:
                                 self.table_set.add(tbl.text)
                                 tbl_tag = tbl.find_next('table')
-                                rows = tbl_tag.find_all('tr')
-                                order = list(map(str.upper, [r.text[:-1] for r in rows[0].findAll('th')]))
-                                for r in rows[1:]:
-                                    data = r.findAll(['th', 'td'])
-                                    data_dict = {}
-                                    case = ''
-                                    for col, d in zip(order, data):
-                                        if col == 'CASE':
-                                            case = d.text[:-1]
-                                        else:
-                                            data_dict[col] = d.text[:-1]
-                                    decls[case] = data_dict
-                                declensions.append(decls)
+                                if tbl_tag is not None:
+                                    rows = tbl_tag.find_all('tr')
+                                    order = list(map(str.upper, [r.text[:-1] for r in rows[0].findAll('th')]))
+                                    for r in rows[1:]:
+                                        data = r.findAll(['th', 'td'])
+                                        data_dict = {}
+                                        case = ''
+                                        for col, d in zip(order, data):
+                                            if col == 'CASE':
+                                                case = d.text[:-1]
+                                            else:
+                                                data_dict[col] = d.text[:-1]
+                                        decls[case] = data_dict
+                                    declensions.append(decls)
+                                else:
+                                    debug('{} had no declension table'.format(word))
                         return declensions
                     else:
                         debug('{} has no declensions.'.format(word))
@@ -162,12 +165,12 @@ class SoupVerbClassScraper(SoupStemScraper):
     table_parsing_key = [
         ('infinitive can', 0, 1),
         ('infinitive to', 0, 2),
-        ('indicative 1st singular present', 2, 1),
-        ('indicative 1st singular past', 2, 2),
-        ('indicative 2nd singular present', 3, 1),
-        ('indicative 2nd singular past', 3, 2),
-        ('indicative 3rd singular present', 4, 1),
-        ('indicative 3rd singular past', 4, 2),
+        ('indicative first singular present', 2, 1),
+        ('indicative first singular past', 2, 2),
+        ('indicative second singular present', 3, 1),
+        ('indicative second singular past', 3, 2),
+        ('indicative third singular present', 4, 1),
+        ('indicative third singular past', 4, 2),
         ('indicative plural present', 5, 1),
         ('indicative plural past', 5, 2),
         ('subjunctive singular present', 7, 1),
@@ -253,8 +256,10 @@ class SoupVerbClassScraper(SoupStemScraper):
                                 tbl_tag = tbl.find_next('table')
 
                                 data_dict = table_parsing(tbl_tag, self.table_parsing_key)
-                                conjugations.append(data_dict)
-                                
+                                conjs['conjugations'].append(data_dict)
+
+                        conjugations.append(conjs)
+
                         return conjugations
                     else:
                         debug('{} has no conjugations.'.format(word))
