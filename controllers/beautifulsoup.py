@@ -41,7 +41,19 @@ def simple_get(url: str) -> bytes:
 
 
 def table_parsing(table: BeautifulSoup, parsings: List[Tuple[str, int, int]]) -> Dict[str, str]:
-    pass
+    result = {}
+    rows = table.find_all('tr')
+    for name, row, col in parsings:
+        if row < len(rows):
+            r = rows[row]
+            columns = r.findAll(['th', 'td'])
+            if col < len(columns):
+                result[name] = columns[col].text
+            else:
+                debug('Index {} doesn\'t exist in row {} for table with {} columns'.format(col, name, len(columns)))
+        else:
+            debug('Index {} doesn\'t fit inside a table with {} rows'.format(row, len(rows)))
+    return result
 
 
 class SoupStemScraper:
