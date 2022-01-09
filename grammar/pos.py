@@ -166,7 +166,7 @@ class Verb:
                                                'plurality, tense, mood, person, participle, is_infinitive',
                                                'origin in ({})'.format(str(self.index)[1:-1]))
         return [(Plurality.NONE, Tense.NONE, Mood.NONE, Person.NONE, False, False)] + \
-               [(Plurality[p.upper()], Tense[t.upper()], Mood[m.upper()],
+               [(Plurality[p.upper().strip()], Tense[t.upper()], Mood[m.upper()],
                  Person[per.upper()], par, inf)
                 for p, t, m, per, par, inf in conjugations]
 
@@ -181,4 +181,4 @@ class Verb:
             return Noun(cont.select_conditional('old_english_words', 'name', 'id = {}'.format(word))[0][0])
         else:
             possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "verb" and is_affix = 0')
-        return Noun(rng.choice(possible_words)[0])
+        return Verb(rng.choice(possible_words)[0])
