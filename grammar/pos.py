@@ -141,8 +141,8 @@ class Verb:
             if self.tense != Tense.NONE:
                 condition += ' and tense = "{}"'.format(self.tense.name.lower())
 
-            conjugations = cont.select_conditional('declensions', 'word',
-                                                   'origin in ({}) and ' + condition)
+            conjugations = cont.select_conditional('conjugations', 'word',
+                                                   'origin in ({}) and '.format(str(self.index)[1:-1]) + condition)
 
             if len(conjugations) > 1:
                 debug('Multiple conjugations for {} in {} {} '

@@ -50,7 +50,7 @@ class Clause:
                 chunks.append(self.verb)
             elif c == 'O':
                 chunks.append(self.object)
-        return ''.join(map(repr, chunks))
+        return ' '.join(map(repr, chunks))
 
     @staticmethod
     def generate_random():
