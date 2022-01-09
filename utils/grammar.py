@@ -77,6 +77,7 @@ class Mood(enum.Enum):
     SUBJUNCTIVE = 2
     PARTICIPLE = 3
     INFINITIVE = 4
+    ROOT = 6
     NONE = 5
 
 
