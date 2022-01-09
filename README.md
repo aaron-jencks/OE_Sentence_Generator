@@ -19,7 +19,7 @@ is used to generate the database.
 
 # POS
 
-Even though the software automatically generates sentences, if you'd like it is also possible to generate single Parts of Speech. Currently only Nouns are supported.
+Even though the software automatically generates sentences, if you'd like it is also possible to generate single Parts of Speech. Currently only Nouns and Verbs are supported.
 
 ## Nouns
 
@@ -42,4 +42,25 @@ from utils.grammar import Case, Plurality
 # Generates a noun that has a nominative plural declension available
 n = Noun.get_random_word([CaseRestriction(Case.NOMINATIVE), 
                           PluralityRestriction(Plurality.PLURAL)])
+```
+
+## Verbs
+
+The `Verb` class implements all of the methods needed to generate and conjugate a verb. You can either specify the root word manually,
+or have one randomly selected from the database.
+
+```python
+from grammar.pos import Verb
+v = Verb.get_random_word()  # Generates a new random verb
+```
+
+You can also specify restrictions, though, currently only Plurality is supported
+
+```python
+from grammar.pos import Verb
+from grammar.restrictions import PluralityRestriction
+from utils.grammar import Plurality
+
+# Generates a verb that has a plural conjugation available
+v = Verb.get_random_word([PluralityRestriction(Plurality.PLURAL)])
 ```

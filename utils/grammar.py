@@ -62,25 +62,27 @@ class Person(enum.Enum):
     FIRST = 0
     SECOND = 1
     THIRD = 2
+    NONE = 3
 
 
 class Tense(enum.Enum):
     PAST = 0
     PRESENT = 1
+    NONE = 2
 
 
 class Mood(enum.Enum):
     INDICATIVE = 0
     IMPERATIVE = 1
     SUBJUNCTIVE = 2
-
-
-class Strength(enum.Enum):
-    WEAK = 0
-    STRONG = 1
+    PARTICIPLE = 3
+    INFINITIVE = 4
+    ROOT = 6
+    NONE = 5
 
 
 class Gender(enum.Enum):
     MASCULINE = 0
     FEMININE = 1
     NEUTER = 2
+    NONE = 3
