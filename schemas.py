@@ -31,6 +31,15 @@ foreign key (origin) references old_english_words(id)
 );
 '''
 
+verb_schemas = '''verbs (
+id integer primary key,
+word integer not null,
+strength bool not null,
+verb_class integer not null,
+transitivity bool not null,
+foreign key (word) references old_english_words(id)
+);'''
+
 
 schemas = [
     old_english_schemas,
@@ -47,5 +56,6 @@ views = [
 record_typing = {
     'old_english_words': '(name, pos, definition, is_affix)',
     'conjugations': '(word, origin, person, plurality, mood, tense, participle, is_infinitive)',
-    'declensions': '(word, origin, plurality, noun_case)'
+    'declensions': '(word, origin, plurality, noun_case)',
+    'verbs': '(word, strength, verb_class, transitivity)'
 }
