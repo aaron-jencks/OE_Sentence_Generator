@@ -54,5 +54,5 @@ def find_different_conjugation_tables(scraper, pos: str):
 
 if __name__ == '__main__':
     use_unverified_ssl()
-    # find_different_conjugation_tables(SoupVerbHeaderScraper, 'verbs')
+    find_different_conjugation_tables(SoupVerbHeaderScraper, 'verbs')
     find_different_conjugation_tables(SoupNounHeaderScraper, 'nouns')
