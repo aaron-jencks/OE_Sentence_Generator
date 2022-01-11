@@ -52,10 +52,10 @@ def convert_word_dictionary_noun(words: List[Dict[str, Union[List[str],
     return {'old_english_words': roots, 'declensions': declensions}
 
 
-def convert_word_dictionary_verb(words: List[Dict[str, Union[List[str],
-                                                             List[Dict[str,
-                                                                       Union[str, Dict[str, str]]]],
-                                                             str]]]) -> Dict[str, List[tuple]]:
+def convert_word_dictionary_verb(words: List[Tuple[str, Dict[str, Union[List[str],
+                                                                        List[Dict[str,
+                                                                                  Union[str, Dict[str, str]]]],
+                                                                        str]]]]) -> Dict[str, List[tuple]]:
     """
     :param words: List of dictionaries to be converted
     {
@@ -93,11 +93,14 @@ def convert_word_dictionary_verb(words: List[Dict[str, Union[List[str],
     debug('Converting Noun dictionaries')
     roots = []
     conjugations = []
+    verbs = []
 
-    for w in tqdm(words):
+    for s, w in tqdm(words):
         for d in w['definitions']:
             roots.append((db_string(w['word']), '"verb"', db_string(d),
                           w['word'].startswith('-') or w['word'].endswith('-')))  # Check for affix
+
+        verbs.append((w['word'], False, 0, s == 'transitive'))
 
         for conj in w['forms']:
             for c, d in conj.items():
@@ -135,7 +138,7 @@ def convert_word_dictionary_verb(words: List[Dict[str, Union[List[str],
 
                 conjugations.append((word, origin, person, plurality, emood, etense, is_participle, is_infinitive))
 
-    return {'old_english_words': roots, 'conjugations': conjugations}
+    return {'old_english_words': roots, 'conjugations': conjugations, 'verbs': verbs}
 
 
 conversion_dict = {
@@ -158,6 +161,7 @@ def initialize_database_scraper():
     roots = []
     declensions = []
     conjugations = []
+    verbs = []
     for t, u in soup_targets.items():
         words = []
         debug('Searching for {}'.format(t))
@@ -170,21 +174,26 @@ def initialize_database_scraper():
                     if t == 'nouns':
                         scraper = SoupStemScraper(wiktionary_root + '/wiki/' + gurl, s,
                                                   initial_table_set=noun_declension_tables)
+                        noun_declension_tables = scraper.table_set
+                        words += scraper.find_words()
                     elif t == 'verbs':
-                        scraper = SoupVerbClassScraper(wiktionary_root + '/wiki/' + gurl, s,
+                        scraper = SoupVerbClassScraper(wiktionary_root + '/wiki/' + gurl,
                                                        initial_table_set=verb_conjugation_tables)
-                    words += scraper.find_words()
-                    noun_declension_tables = scraper.table_set
+                        verb_conjugation_tables = scraper.table_set
+                        words += [(s, w) for w in scraper.find_words()]
+
             else:
                 scraper = None
                 if t == 'nouns':
                     scraper = SoupStemScraper(wiktionary_root + '/wiki/' + url, s,
                                               initial_table_set=noun_declension_tables)
+                    noun_declension_tables = scraper.table_set
+                    words += scraper.find_words()
                 elif t == 'verbs':
-                    scraper = SoupVerbClassScraper(wiktionary_root + '/wiki/' + url, s,
+                    scraper = SoupVerbClassScraper(wiktionary_root + '/wiki/' + url,
                                                    initial_table_set=verb_conjugation_tables)
-                words += scraper.find_words()
-                noun_declension_tables = scraper.table_set
+                    verb_conjugation_tables = scraper.table_set
+                    words += [(s, w) for w in scraper.find_words()]
             debug('Found {} words so far'.format(len(words)))
 
         tuple_dict = conversion_dict[t](words)
@@ -194,10 +203,13 @@ def initialize_database_scraper():
             declensions += tuple_dict['declensions']
         if 'conjugations' in tuple_dict:
             conjugations += tuple_dict['conjugations']
+        if 'verbs' in tuple_dict:
+            verbs += tuple_dict['verbs']
 
     cont.insert_record('old_english_words', roots)
     insert_declensions(declensions)
     insert_verb_conjugations(conjugations)
+    insert_verb_transitivities(verbs)
 
 
 def initialize_database_dump():
@@ -516,6 +528,38 @@ def insert_verb_conjugations(conjugations: List[Tuple[str, str, str, str, str, s
                            1 if pt else 0, 1 if pr else 0))
         else:
             debug('{} was not found to be a root verb'.format(o))
+
+    cont.insert_record('conjugations', tuples)
+
+
+def insert_verb_transitivities(conjugations: List[Tuple[str, bool, int, bool]]):
+    cont = SQLController.get_instance()
+
+    debug('Inserting Verb Conjugation Table')
+    words = list(set([db_string(d[0]) for d in conjugations]))
+    where_clause = 'name in ({})'.format(','.join(words)) if len(words) > 1 else 'name = {}'.format(words[0])
+    indices = cont.select_conditional('old_english_words', 'id, name, pos', where_clause)
+
+    debug('Generating foreign key dictionary')
+    pos_dict = {}
+    index_dict = {}
+    for index, name, pos in indices:
+        if name not in index_dict:
+            index_dict[name] = index
+            pos_dict[name] = pos
+        elif pos == 'verb' and pos_dict[name] != 'verb':
+            index_dict[name] = index
+            pos_dict[name] = pos
+        elif pos == 'verb':
+            debug('Possible ambiguous conjugation of {} as a {} and {}'.format(name, pos, pos_dict[name]))
+
+    debug('linking...')
+    tuples = []
+    for w, stren, cl, trans in conjugations:
+        if w in index_dict:
+            tuples.append((index_dict[w], 1 if stren else 0, cl, 1 if trans else 0))
+        else:
+            debug('{} was not found to be a root verb'.format(w))
 
     cont.insert_record('conjugations', tuples)
 
