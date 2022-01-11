@@ -29,7 +29,7 @@ def convert_word_dictionary_noun(words: List[Dict[str, Union[List[str],
     {
     'word': word,
     'definitions': List of definitions,
-    'case': Dictionary of SINGULAR, PLURAL forms of case 'case'
+    'forms': List of dictionaries with case entries
     }
     :return: Returns a dictionary with each key corresponding to a table and it's value a list of data to insert
     """
@@ -43,12 +43,11 @@ def convert_word_dictionary_noun(words: List[Dict[str, Union[List[str],
             roots.append((db_string(w['word']), '"noun"', db_string(d),
                           w['word'].startswith('-') or w['word'].endswith('-')))  # Check for affix
 
-        for c, d in w.items():
-            if c not in ['word', 'definitions']:
-                # c is a case
-                for p, v in d.items():
-                    declensions.append((db_string(v), w['word'],
-                                        db_string(p.lower()), db_string(c.lower())))
+        for decl in w['forms']:
+            for c, d in decl.items():
+                case, plurality = c.split(' ')
+                declensions.append((db_string(d), w['word'],
+                                    db_string(plurality.lower()), db_string(case.lower())))
 
     return {'old_english_words': roots, 'declensions': declensions}
 
@@ -62,7 +61,7 @@ def convert_word_dictionary_verb(words: List[Dict[str, Union[List[str],
     {
     'word': word,
     'definitions': List of definitions,
-    'conjugations': A List of conjugation dictionaries
+    'forms': A List of conjugation dictionaries
     Conjugation dictionaries: {
         'key':  The name indicating the conjugation form of this entry
         'form' The form of the root verb for this conjugation
@@ -100,7 +99,7 @@ def convert_word_dictionary_verb(words: List[Dict[str, Union[List[str],
             roots.append((db_string(w['word']), '"verb"', db_string(d),
                           w['word'].startswith('-') or w['word'].endswith('-')))  # Check for affix
 
-        for conj in w['conjugations']:
+        for conj in w['forms']:
             for c, d in conj.items():
                 origin = w['word']
                 word = db_string(d)

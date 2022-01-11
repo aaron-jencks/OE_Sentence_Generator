@@ -143,9 +143,9 @@ class OEScraper:
                 for li in tqdm(lis, desc='Page {}'.format(p + 1)):
                     link = li.find('a').get('href')
                     page = wiktionary_root + '/' + link
-                    declensions = self.parse_page(li.text, page)
-                    if declensions is not None:
-                        self.word_list += declensions
+                    forms = self.parse_page(li.text, page)
+                    if forms is not None:
+                        self.word_list.append(forms)
                     else:
                         debug('{} did not have any forms'.format(li.text))
                 if next_url is not None:
