@@ -44,7 +44,8 @@ foreign key (word) references old_english_words(id)
 schemas = [
     old_english_schemas,
     conjugations_schemas,
-    declensions_schemas
+    declensions_schemas,
+    verb_schemas
 ]
 
 triggers = [

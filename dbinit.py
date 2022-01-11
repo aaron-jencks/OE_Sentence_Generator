@@ -561,7 +561,7 @@ def insert_verb_transitivities(conjugations: List[Tuple[str, bool, int, bool]]):
         else:
             debug('{} was not found to be a root verb'.format(w))
 
-    cont.insert_record('conjugations', tuples)
+    cont.insert_record('verbs', tuples)
 
 
 if __name__ == '__main__':
