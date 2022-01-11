@@ -21,24 +21,7 @@ soup_targets = {
         'z-stem': 'Category:Old_English_z-stem_nouns'
     },
     'verbs': {
-        'irregular': {
-            'defective': 'Category:Old_English_defective_verbs',
-            'preterite-present': 'Category:Old_English_preterite-present_verbs',
-            'suppletive': 'Category:Old_English_suppletive_verbs'
-        },
-        'strong': {
-            'class 1': 'Category:Old_English_class_1_strong_verbs',
-            'class 2': 'Category:Old_English_class_2_strong_verbs',
-            'class 3': 'Category:Old_English_class_3_strong_verbs',
-            'class 4': 'Category:Old_English_class_4_strong_verbs',
-            'class 5': 'Category:Old_English_class_5_strong_verbs',
-            'class 6': 'Category:Old_English_class_6_strong_verbs',
-            'class 7': 'Category:Old_English_class_7_strong_verbs'
-        },
-        'weak': {
-            'class 1': 'Category:Old_English_class_1_weak_verbs',
-            'class 2': 'Category:Old_English_class_2_weak_verbs',
-            'class 3': 'Category:Old_English_class_3_weak_verbs'
-        }
+        'transitive': 'Category:Old_English_transitive_verbs',
+        'intransitive': 'Category:Old_English_intransitive_verbs'
     }
 }
