@@ -54,7 +54,7 @@ from grammar.pos import Verb
 v = Verb.get_random_word()  # Generates a new random verb
 ```
 
-You can also specify restrictions, though, currently only Plurality is supported
+You can also specify restrictions, though, currently only Plurality and Transitivity are supported
 
 ```python
 from grammar.pos import Verb

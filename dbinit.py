@@ -141,16 +141,55 @@ def convert_word_dictionary_verb(words: List[Tuple[str, Dict[str, Union[List[str
     return {'old_english_words': roots, 'conjugations': conjugations, 'verbs': verbs}
 
 
+def convert_word_dictionary_adverb(words: List[Tuple[str, Dict[str, Union[List[str],
+                                                                        List[Dict[str,
+                                                                                  Union[str, Dict[str, str]]]],
+                                                                        str]]]]) -> Dict[str, List[tuple]]:
+    """
+    :param words: List of dictionaries to be converted
+    {
+    'word': word,
+    'definitions': List of definitions,
+    'forms': A List of conjugation dictionaries
+    }
+    :return: Returns a dictionary with each key corresponding to a table and it's value a list of data to insert
+    """
+
+    debug('Converting Noun dictionaries')
+    roots = []
+    adverbs = {}
+
+    for s, w in tqdm(words):
+        for d in w['definitions']:
+            roots.append((db_string(w['word']), '"adverb"', db_string(d),
+                          w['word'].startswith('-') or w['word'].endswith('-')))  # Check for affix
+
+        if w['word'] not in adverbs:
+            adverbs[w['word']] = {'comparative': False, 'superlative': False}
+
+        if s == 'comparative':
+            adverbs[w['word']]['comparative'] = True
+        elif s == 'superlative':
+            adverbs[w['word']]['superlative'] = True
+
+    adverb_entries = []
+    for w in adverbs.keys():
+        adverb_entries.append((w, adverbs[w]['comparative'], adverbs[w]['superlative']))
+
+    return {'old_english_words': roots, 'adverbs': adverb_entries}
+
+
 conversion_dict = {
     'nouns': convert_word_dictionary_noun,
-    'verbs': convert_word_dictionary_verb
+    'verbs': convert_word_dictionary_verb,
+    'adverbs': convert_word_dictionary_adverb
 }
 
 
 def initialize_database_scraper():
     from soup_targets import soup_targets, wiktionary_root
     from controllers.sql import SQLController
-    from controllers.beautifulsoup import SoupStemScraper, SoupVerbClassScraper
+    from controllers.beautifulsoup import SoupStemScraper, SoupVerbClassScraper, SoupAdverbScraper
 
     cont = SQLController.get_instance()
     cont.reset_database()
@@ -162,6 +201,7 @@ def initialize_database_scraper():
     declensions = []
     conjugations = []
     verbs = []
+    adverbs = []
     for t, u in soup_targets.items():
         words = []
         debug('Searching for {}'.format(t))
@@ -174,12 +214,15 @@ def initialize_database_scraper():
                     if t == 'nouns':
                         scraper = SoupStemScraper(wiktionary_root + '/wiki/' + gurl, s,
                                                   initial_table_set=noun_declension_tables)
-                        noun_declension_tables = scraper.table_set
                         words += scraper.find_words()
+                        noun_declension_tables = scraper.table_set
                     elif t == 'verbs':
                         scraper = SoupVerbClassScraper(wiktionary_root + '/wiki/' + gurl,
                                                        initial_table_set=verb_conjugation_tables)
+                        words += [(s, w) for w in scraper.find_words()]
                         verb_conjugation_tables = scraper.table_set
+                    elif t == 'adverbs':
+                        scraper = SoupAdverbScraper(wiktionary_root + '/wiki/' + gurl, s)
                         words += [(s, w) for w in scraper.find_words()]
 
             else:
@@ -187,12 +230,15 @@ def initialize_database_scraper():
                 if t == 'nouns':
                     scraper = SoupStemScraper(wiktionary_root + '/wiki/' + url, s,
                                               initial_table_set=noun_declension_tables)
-                    noun_declension_tables = scraper.table_set
                     words += scraper.find_words()
+                    noun_declension_tables = scraper.table_set
                 elif t == 'verbs':
                     scraper = SoupVerbClassScraper(wiktionary_root + '/wiki/' + url,
                                                    initial_table_set=verb_conjugation_tables)
+                    words += [(s, w) for w in scraper.find_words()]
                     verb_conjugation_tables = scraper.table_set
+                elif t == 'adverbs':
+                    scraper = SoupAdverbScraper(wiktionary_root + '/wiki/' + url, s)  # There are no tables for adverbs
                     words += [(s, w) for w in scraper.find_words()]
             debug('Found {} words so far'.format(len(words)))
 
@@ -205,11 +251,14 @@ def initialize_database_scraper():
             conjugations += tuple_dict['conjugations']
         if 'verbs' in tuple_dict:
             verbs += tuple_dict['verbs']
+        if 'adverbs' in tuple_dict:
+            adverbs += tuple_dict['adverbs']
 
     cont.insert_record('old_english_words', roots)
     insert_declensions(declensions)
     insert_verb_conjugations(conjugations)
     insert_verb_transitivities(verbs)
+    insert_adverbs(adverbs)
 
 
 def initialize_database_dump():
@@ -562,6 +611,38 @@ def insert_verb_transitivities(conjugations: List[Tuple[str, bool, int, bool]]):
             debug('{} was not found to be a root verb'.format(w))
 
     cont.insert_record('verbs', tuples)
+
+
+def insert_adverbs(adverbs: List[Tuple[str, bool, bool]]):
+    cont = SQLController.get_instance()
+
+    debug('Inserting Verb Conjugation Table')
+    words = list(set([db_string(d[0]) for d in adverbs]))
+    where_clause = 'name in ({})'.format(','.join(words)) if len(words) > 1 else 'name = {}'.format(words[0])
+    indices = cont.select_conditional('old_english_words', 'id, name, pos', where_clause)
+
+    debug('Generating foreign key dictionary')
+    pos_dict = {}
+    index_dict = {}
+    for index, name, pos in indices:
+        if name not in index_dict:
+            index_dict[name] = index
+            pos_dict[name] = pos
+        elif pos == 'adverb' and pos_dict[name] != 'adverb':
+            index_dict[name] = index
+            pos_dict[name] = pos
+        elif pos == 'adverb':
+            debug('Possible ambiguous conjugation of {} as a {} and {}'.format(name, pos, pos_dict[name]))
+
+    debug('linking...')
+    tuples = []
+    for w, comp, sup in adverbs:
+        if w in index_dict:
+            tuples.append((index_dict[w], 1 if comp else 0, 1 if sup else 0))
+        else:
+            debug('{} was not found to be a root adverb'.format(w))
+
+    cont.insert_record('adverbs', tuples)
 
 
 if __name__ == '__main__':
