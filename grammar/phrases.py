@@ -2,7 +2,7 @@ from grammar.pos import Noun, Verb
 from utils.grammar import WordOrder, Case, Plurality, Person, Tense, Mood
 
 import random as rng
-from typing import List
+from typing import List, Union
 
 
 class Phrase:
@@ -42,6 +42,34 @@ class VerbPhrase(Phrase):
     @staticmethod
     def generate_random():
         return VerbPhrase(Verb.get_random_word())
+
+
+class TransitiveVerbPhrase(VerbPhrase):
+    def __init__(self, v: Verb, direct_object: NounPhrase, indirect_object: Union[NounPhrase, None] = None):
+        super().__init__(v)
+        self.do = direct_object
+        self.io = indirect_object
+
+    def __repr__(self):
+        chunks = [super().__repr__()]
+        if self.io is not None:
+            chunks.append(repr(self.io))
+        chunks.append(repr(self.do))
+        return ' '.join(chunks)
+
+    @staticmethod
+    def generate_random():
+        direct_object = NounPhrase.generate_random()
+        indirect_object = None
+        if rng.randint(0, 1) == 1:
+            indirect_object = NounPhrase.generate_random()
+        return TransitiveVerbPhrase(Verb.get_random_word(), direct_object, indirect_object)
+
+
+class IntransitiveVerbPhrase(VerbPhrase):
+    @staticmethod
+    def generate_random():
+        return IntransitiveVerbPhrase(Verb.get_random_word())
 
 
 class Clause:
