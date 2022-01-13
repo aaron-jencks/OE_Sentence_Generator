@@ -1,5 +1,6 @@
 from grammar.pos import Noun, Verb
 from utils.grammar import WordOrder, Case, Plurality, Person, Tense, Mood
+from grammar.restrictions import TransitivityRestriction
 
 import random as rng
 from typing import List, Union
@@ -63,13 +64,14 @@ class TransitiveVerbPhrase(VerbPhrase):
         indirect_object = None
         if rng.randint(0, 1) == 1:
             indirect_object = NounPhrase.generate_random()
-        return TransitiveVerbPhrase(Verb.get_random_word(), direct_object, indirect_object)
+        return TransitiveVerbPhrase(Verb.get_random_word([TransitivityRestriction(True)]),
+                                    direct_object, indirect_object)
 
 
 class IntransitiveVerbPhrase(VerbPhrase):
     @staticmethod
     def generate_random():
-        return IntransitiveVerbPhrase(Verb.get_random_word())
+        return IntransitiveVerbPhrase(Verb.get_random_word([TransitivityRestriction(False)]))
 
 
 class Clause:
