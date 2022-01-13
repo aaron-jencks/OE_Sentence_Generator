@@ -7,6 +7,7 @@ import re
 import math
 import os.path as path
 import os
+import regex
 
 from controllers.ui import error, debug
 from soup_targets import wiktionary_root
@@ -209,7 +210,7 @@ class OETableWordScraper(OEWordScraper):
         if header is not None:
             tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})]
 
-            next_span = header.find_next('span', attrs={'class': 'mw-headline'})
+            next_span = soup.find_next('h3')
             if next_span is not None:
                 spans_table = next_span.find_next('div', attrs={'class': 'NavHead'})
                 if spans_table is not None:
@@ -276,6 +277,64 @@ class SoupVerbClassScraper(OETableWordScraper):
 class SoupAdverbScraper(OEWordScraper):
     def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
         super().__init__(url, r'Adverb.*', all_pages, initial_table_set)
+
+
+class SoupAdjectiveScraper(OETableWordScraper):
+    def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
+        super().__init__(url, r'Adjective.*', r'(Conjugation|Declension).*', [], all_pages, initial_table_set)
+        self.table_header_regex = r'Declension of .+ — (?P<strength>Strong|Weak)( only)?'
+        self.single_table_key = []
+
+    def setup_table_key(self):
+        cases = ['nominative', 'accusative', 'genitive', 'dative', 'instrumental']
+        genders = ['masculine', 'feminine', 'neuter']
+
+        self.table_parsing_key = []
+        self.single_table_key = [('plurality', 0, 0)]
+
+        for ci, c in enumerate(cases):
+            for gi, g in enumerate(genders):
+                self.table_parsing_key.append(('singular {} {}'.format(c, g), ci + 1, gi + 1))
+                self.table_parsing_key.append(('plural {} {}'.format(c, g), ci + 7, gi + 1))
+                self.single_table_key.append(('{} {}'.format(c, g), ci + 7, gi + 1))
+
+    def parse_forms(self, word: str, soup, form_dict: Dict[str, Union[str, List[str], List[Dict[str, str]]]]):
+        header = soup.find_next('span', attrs={'id': self.table_regex})
+
+        if header is not None:
+            tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})]
+
+            next_span = soup.find_next('h3')
+            if next_span is not None:
+                spans_table = next_span.find_next('div', attrs={'class': 'NavHead'})
+                if spans_table is not None:
+                    new_tables = []
+                    for tbl in tables:
+                        if tbl.text == spans_table.text:
+                            break
+                        else:
+                            new_tables.append(tbl)
+                    tables = new_tables
+
+            for tbl in tables:
+                if tbl.text not in self.table_set:
+                    self.table_set.add(tbl.text)
+
+                    stren = 'none'
+                    match = re.match(self.table_header_regex, tbl.text)
+                    if match is not None:
+                        stren = match['strength']
+
+                    tbl_tag = tbl.find_next('table')
+
+                    rows = tbl_tag.find_all('tr')
+                    if len(rows) > 6:
+                        data_dict = self.parse_table(tbl_tag, self.table_parsing_key)
+                    else:
+                        data_dict = self.parse_table(tbl_tag, self.plural_table_key)
+                    form_dict['forms'].append((stren, data_dict))
+        else:
+            debug('{} has no form table'.format(word))
 
 
 class SoupHeaderScraper(OEWordScraper):
@@ -370,6 +429,62 @@ class SoupVerbHeaderScraper(SoupHeaderScraper):
 class SoupNounHeaderScraper(SoupHeaderScraper):
     def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
         super().__init__(url, r'(Noun|Proper_noun|Suffix).*', all_pages, initial_table_set)
+
+
+class SoupAdjectiveHeaderScraper(SoupHeaderScraper):
+    def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
+        super().__init__(url, r'Adjective.*', all_pages, initial_table_set)
+        self.table_header_regex = r'Declension of .+ — (?P<strength>Strong|Weak)( only)?'
+
+    def parse_page(self, word: str, url: str) -> Union[List[str], None]:
+        resp = simple_get(url)
+        if resp is not None:
+            conjs = []
+            w_soup = BeautifulSoup(resp, 'html.parser')
+
+            pos_header = self.parse_definitions(w_soup, {})
+
+            if pos_header is not None:
+                header = pos_header.find_next('span', attrs={'id': re.compile('(Conjugation|Declension|Inflection).*')})
+
+                if header is not None:
+                    tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})]
+
+                    next_span = pos_header.find_next('h3')
+                    if next_span is not None:
+                        spans_table = next_span.find_next('div', attrs={'class': 'NavHead'})
+                        if spans_table is not None:
+                            new_tables = []
+                            for tbl in tables:
+                                if tbl.text == spans_table.text:
+                                    break
+                                else:
+                                    new_tables.append(tbl)
+                            tables = new_tables
+
+                    for tbl in tables:
+                        conj = ''
+                        match = re.match(self.table_header_regex, tbl.text)
+                        if match is not None and tbl.text not in self.table_set:
+                            self.table_set.add(tbl.text)
+                            tbl_tag = tbl.find_next('table')
+                            rows = tbl_tag.find_all('tr')
+                            for ri, r in enumerate(rows):
+                                data = r.findAll(['th', 'td'])
+                                for element in data:
+                                    if element.name == 'th':
+                                        conj += element.text.replace('\n', '') + '\t'
+                                    else:
+                                        conj += '_\t'
+                                conj += '\n'
+                            conjs.append(conj)
+
+                    return conjs if len(conjs) > 0 else None
+                else:
+                    debug('{} has no forms table.'.format(word))
+            else:
+                debug('{} is not in old english'.format(word))
+        return None
 
 
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
 from soup_targets import soup_targets, wiktionary_root
-from controllers.beautifulsoup import SoupVerbHeaderScraper, SoupNounHeaderScraper, SoupHeaderScraper
+from controllers.beautifulsoup import SoupVerbHeaderScraper, SoupNounHeaderScraper, \
+    SoupHeaderScraper, SoupAdjectiveHeaderScraper
 from controllers.ui import debug
 from utils.web import use_unverified_ssl
 
@@ -56,3 +57,4 @@ if __name__ == '__main__':
     use_unverified_ssl()
     find_different_conjugation_tables(SoupVerbHeaderScraper, 'verbs')
     find_different_conjugation_tables(SoupNounHeaderScraper, 'nouns')
+    find_different_conjugation_tables(SoupAdjectiveHeaderScraper, 'adjectives')
