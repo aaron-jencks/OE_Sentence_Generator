@@ -332,6 +332,8 @@ class SoupAdjectiveScraper(OETableWordScraper):
                         data_dict = self.parse_table(tbl_tag, self.table_parsing_key)
                     else:
                         data_dict = self.parse_table(tbl_tag, self.plural_table_key)
+
+                    data_dict['strength'] = stren
                     form_dict['forms'].append((stren, data_dict))
         else:
             debug('{} has no form table'.format(word))
