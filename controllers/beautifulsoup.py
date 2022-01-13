@@ -203,6 +203,7 @@ class OETableWordScraper(OEWordScraper):
         super().__init__(url, pos_regex, all_pages, initial_table_set)
         self.table_regex = re.compile(table_regex)
         self.table_parsing_key = table_parsing_key
+        self.derived_terms_regex = r'Derived terms.*'
 
     def parse_forms(self, word: str, soup, form_dict: Dict[str, Union[str, List[str], List[Dict[str, str]]]]):
         header = soup.find_next('span', attrs={'id': self.table_regex})
@@ -223,12 +224,13 @@ class OETableWordScraper(OEWordScraper):
                     tables = new_tables
 
             for tbl in tables:
-                if tbl.text not in self.table_set:
-                    self.table_set.add(tbl.text)
-                    tbl_tag = tbl.find_next('table')
-
-                    data_dict = self.parse_table(tbl_tag, self.table_parsing_key)
-                    form_dict['forms'].append(data_dict)
+                if re.match(self.derived_terms_regex, tbl.text) is None:
+                    if tbl.text not in self.table_set:
+                        self.table_set.add(tbl.text)
+                        tbl_tag = tbl.find_next('table')
+    
+                        data_dict = self.parse_table(tbl_tag, self.table_parsing_key)
+                        form_dict['forms'].append(data_dict)
         else:
             debug('{} has no form table'.format(word))
 
