@@ -189,7 +189,7 @@ conversion_dict = {
 def initialize_database_scraper():
     from soup_targets import soup_targets, wiktionary_root
     from controllers.sql import SQLController
-    from controllers.beautifulsoup import SoupStemScraper, SoupVerbClassScraper, OEWordScraper
+    from controllers.beautifulsoup import SoupStemScraper, SoupVerbClassScraper, SoupAdverbScraper
 
     cont = SQLController.get_instance()
     cont.reset_database()
@@ -222,7 +222,7 @@ def initialize_database_scraper():
                         words += [(s, w) for w in scraper.find_words()]
                         verb_conjugation_tables = scraper.table_set
                     elif t == 'adverbs':
-                        scraper = OEWordScraper(wiktionary_root + '/wiki/' + gurl, s)  # There are no tables for adverbs
+                        scraper = SoupAdverbScraper(wiktionary_root + '/wiki/' + gurl, s)
                         words += [(s, w) for w in scraper.find_words()]
 
             else:
@@ -238,7 +238,7 @@ def initialize_database_scraper():
                     words += [(s, w) for w in scraper.find_words()]
                     verb_conjugation_tables = scraper.table_set
                 elif t == 'adverbs':
-                    scraper = OEWordScraper(wiktionary_root + '/wiki/' + url, s)  # There are no tables for adverbs
+                    scraper = SoupAdverbScraper(wiktionary_root + '/wiki/' + url, s)  # There are no tables for adverbs
                     words += [(s, w) for w in scraper.find_words()]
             debug('Found {} words so far'.format(len(words)))
 
