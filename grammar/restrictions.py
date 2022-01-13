@@ -20,3 +20,11 @@ class PluralityRestriction(WordRestriction):
 
     def get_sql_constraint(self) -> str:
         return 'declension = "{}"'.format(self._c.name.lower())
+
+
+class TransitivityRestriction(WordRestriction):
+    def __init__(self, t: bool):
+        self._t = t
+
+    def get_sql_constraint(self) -> str:
+        return 'transitivity = {}'.format(1 if self._t else 0)

@@ -84,7 +84,7 @@ class Noun:
         if restrictions is not None and len(restrictions) > 0:
             constraint_string = (' and '.join([r.get_sql_constraint() for r in restrictions])
                                  if restrictions is not None else '')
-            possible_words = cont.select_conditional('declensions', 'origin', constraint_string)
+            possible_words = cont.select_conditional('declensions', 'distinct origin', constraint_string)
             word = rng.choice(possible_words)[0]
             return Noun(cont.select_conditional('old_english_words', 'name', 'id = {}'.format(word))[0][0])
         else:
@@ -190,9 +190,10 @@ class Verb:
         if restrictions is not None and len(restrictions) > 0:
             constraint_string = (' and '.join([r.get_sql_constraint() for r in restrictions])
                                  if restrictions is not None else '')
-            possible_words = cont.select_conditional('conjugations', 'origin', constraint_string)
+            possible_words = cont.select_conditional('conjugations join verbs on verbs.word = conjugations.origin',
+                                                     'distinct origin', constraint_string)
             word = rng.choice(possible_words)[0]
-            return Noun(cont.select_conditional('old_english_words', 'name', 'id = {}'.format(word))[0][0])
+            return Verb(cont.select_conditional('old_english_words', 'name', 'id = {}'.format(word))[0][0])
         else:
             possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "verb" and is_affix = 0')
         return Verb(rng.choice(possible_words)[0])
