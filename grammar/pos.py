@@ -1,5 +1,5 @@
 from controllers.sql import SQLController
-from utils.grammar import Case, Plurality, Mood, Tense, Person
+from utils.grammar import Case, Plurality, Mood, Tense, Person, Gender
 from controllers.ui import debug
 from grammar.restrictions import WordRestriction
 
@@ -233,3 +233,96 @@ class Adverb:
         cont = SQLController.get_instance()
         possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "adverb" and is_affix = 0')
         return Adverb(rng.choice(possible_words)[0])
+
+
+class Adjective:
+    def __init__(self, root: str):
+        self.root = root
+        self.case: Case = Case.ROOT
+        self.plurality: Plurality = Plurality.NONE
+        self.gender: Gender = Gender.NONE
+        self.strength = False
+
+    def __repr__(self) -> str:
+        return '{}'.format(self.root)
+
+    @property
+    def index(self) -> List[int]:
+        cont = SQLController.get_instance()
+
+        indices = cont.select_conditional('old_english_words', 'id',
+                                          'name = "{}" and pos = "adjective"'.format(self.root))
+
+        if len(indices) > 1:
+            debug('Multiple indices found for root {} with indices {} and {}'.format(self.root,
+                                                                                     indices[0][0],
+                                                                                     indices[1][0])
+                  )
+        elif len(indices) == 0:
+            debug('No index found for {}'.format(self.root))
+            return [-1]
+
+        return [index[0] for index in indices]
+
+    @property
+    def meaning(self) -> List[str]:
+        cont = SQLController.get_instance()
+        definitions = cont.select_conditional('old_english_words', 'definition',
+                                              'id in ({})'.format(str(self.index)[1:-1]))
+        return definitions
+
+    def get_declension(self) -> str:
+        cont = SQLController.get_instance()
+
+        if self.case == Case.ROOT:
+            return self.root
+        else:
+            condition = 'strength = {} and noun_case = "{}"'.format(1 if self.strength else 0, self.case.name.lower())
+
+            if self.plurality != Plurality.NONE:
+                condition += ' and plurality = "{}"'.format(self.plurality.name.lower())
+            if self.gender != Gender.NONE:
+                condition += ' and gender = "{}"'.format(self.gender.name.lower())
+
+            declensions = cont.select_conditional('adjectives', 'word',
+                                                  'origin in ({}) and {}'.format(
+                                                      str(self.index)[1:-1],
+                                                      condition))
+
+            if len(declensions) > 1:
+                debug('Multiple declensions for {} in {} {} '
+                      'form found with indices {} and {}'.format(self.root,
+                                                                 self.case.name.lower(),
+                                                                 self.plurality.name.lower(),
+                                                                 declensions[0][0],
+                                                                 declensions[1][0]))
+            elif len(declensions) == 0:
+                debug('No word found for {} in the {} {}'.format(self.root,
+                                                                 self.case.name.lower(), self.plurality.name.lower()))
+                return self.root
+
+            dec_index = [d[0] for d in declensions]
+
+            return dec_index[0]
+
+    def get_possible_declensions(self) -> List[Tuple[bool, Gender, Case, Plurality]]:
+        cont = SQLController.get_instance()
+        declensions = cont.select_conditional('adjectives',
+                                              'strength, gender, plurality, noun_case', 'origin in ({})'.format(
+                str(self.index)[1:-1]))
+
+        return [(False, Gender.NONE, Case.ROOT, Plurality.NONE)] + \
+               [(s == 1, Gender[g.upper()], Case[c.upper()], Plurality[p.upper()]) for s, g, p, c in declensions]
+
+    @staticmethod
+    def get_random_word(restrictions: Union[List[WordRestriction], None] = None):
+        cont = SQLController.get_instance()
+        if restrictions is not None and len(restrictions) > 0:
+            constraint_string = (' and '.join([r.get_sql_constraint() for r in restrictions])
+                                 if restrictions is not None else '')
+            possible_words = cont.select_conditional('adjectives', 'distinct origin', constraint_string)
+            word = rng.choice(possible_words)[0]
+            return Noun(cont.select_conditional('old_english_words', 'name', 'id = {}'.format(word))[0][0])
+        else:
+            possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "adjective" and is_affix = 0')
+        return Noun(rng.choice(possible_words)[0])
