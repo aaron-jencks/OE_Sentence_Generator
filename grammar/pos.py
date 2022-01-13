@@ -197,3 +197,39 @@ class Verb:
         else:
             possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "verb" and is_affix = 0')
         return Verb(rng.choice(possible_words)[0])
+
+
+class Adverb:
+    def __init__(self, a: str):
+        self.root = a
+
+    @property
+    def index(self) -> List[int]:
+        cont = SQLController.get_instance()
+
+        indices = cont.select_conditional('old_english_words', 'id',
+                                          'name = "{}" and pos = "noun"'.format(self.root))
+
+        if len(indices) > 1:
+            debug('Multiple indices found for root {} with indices {} and {}'.format(self.root,
+                                                                                     indices[0][0],
+                                                                                     indices[1][0])
+                  )
+        elif len(indices) == 0:
+            debug('No index found for {}'.format(self.root))
+            return [-1]
+
+        return [index[0] for index in indices]
+
+    @property
+    def meaning(self) -> List[str]:
+        cont = SQLController.get_instance()
+        definitions = cont.select_conditional('old_english_words', 'definition',
+                                              'id in ({})'.format(str(self.index)[1:-1]))
+        return definitions
+
+    @staticmethod
+    def get_random_word():
+        cont = SQLController.get_instance()
+        possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "adverb" and is_affix = 0')
+        return Adverb(rng.choice(possible_words)[0])
