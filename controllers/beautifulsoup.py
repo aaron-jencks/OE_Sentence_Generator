@@ -175,6 +175,7 @@ class OEWordScraper(OEScraper):
 
             header = header.find_next('span', attrs={'id': self.pos_regex})
             return header
+
         return None
 
     def parse_forms(self, word: str, soup, form_dict: Dict[str, Union[str, List[str], List[Dict[str, str]]]]):
@@ -270,6 +271,11 @@ class SoupVerbClassScraper(OETableWordScraper):
             ('present participle', 12, 1),
             ('past participle', 12, 2)
         ], all_pages, initial_table_set)
+
+
+class SoupAdverbScraper(OEWordScraper):
+    def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
+        super().__init__(url, r'Adverb.*', all_pages, initial_table_set)
 
 
 class SoupHeaderScraper(OEWordScraper):
