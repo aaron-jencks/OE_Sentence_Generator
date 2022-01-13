@@ -258,6 +258,7 @@ def initialize_database_scraper():
     insert_declensions(declensions)
     insert_verb_conjugations(conjugations)
     insert_verb_transitivities(verbs)
+    insert_adverbs(adverbs)
 
 
 def initialize_database_dump():
