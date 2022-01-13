@@ -325,4 +325,5 @@ class Adjective:
             return Noun(cont.select_conditional('old_english_words', 'name', 'id = {}'.format(word))[0][0])
         else:
             possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "adjective" and is_affix = 0')
+
         return Adjective(rng.choice(possible_words)[0])

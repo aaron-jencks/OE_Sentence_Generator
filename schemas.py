@@ -40,6 +40,17 @@ transitivity bool not null,
 foreign key (word) references old_english_words(id)
 );'''
 
+adjective_schemas = '''adjectives (
+id integer primary key,
+origin integer not null,
+word text not null,
+strength bool not null,
+gender text not null,
+noun_case text not null,
+plurality text not null,
+foreign key (origin) references old_english_words(id)
+);'''
+
 adverb_schemas = '''adverbs (
 id integer primary key,
 word integer not null,
@@ -54,6 +65,7 @@ schemas = [
     conjugations_schemas,
     declensions_schemas,
     verb_schemas,
+    adjective_schemas,
     adverb_schemas
 ]
 
@@ -68,5 +80,6 @@ record_typing = {
     'conjugations': '(word, origin, person, plurality, mood, tense, participle, is_infinitive)',
     'declensions': '(word, origin, plurality, noun_case)',
     'verbs': '(word, strength, verb_class, transitivity)',
+    'adjectives': '(origin, word, strength, gender, noun_case, plurality)',
     'adverbs': '(word, comparative, superlative)'
 }
