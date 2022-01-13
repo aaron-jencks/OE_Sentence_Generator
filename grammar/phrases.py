@@ -109,9 +109,10 @@ class Clause:
         sub.noun.case = Case.NOMINATIVE
         sub.noun.plurality = Plurality(rng.randint(0, 1))
 
-        # TODO Assumes all verbs are transitive
+        verb = IntransitiveVerbPhrase.generate_random()
+        if rng.randint(0, 1) == 1:
+            verb = TransitiveVerbPhrase.generate_random()
 
-        verb = VerbPhrase.generate_random()
         verb.verb.plurality = sub.noun.plurality
         verb.verb.mood = Mood.INDICATIVE
         verb.verb.person = Person.THIRD
