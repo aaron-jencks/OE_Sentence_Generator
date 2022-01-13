@@ -23,5 +23,10 @@ soup_targets = {
     'verbs': {
         'transitive': 'Category:Old_English_transitive_verbs',
         'intransitive': 'Category:Old_English_intransitive_verbs'
+    },
+    'adverbs': {
+        'all': 'Category:Old_English_adverbs',
+        'comparative': 'Category:Old_English_comparative_adverbs',
+        'superlative': 'Category:Old_English_superlative_adverbs'
     }
 }
