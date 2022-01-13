@@ -248,7 +248,8 @@ conversion_dict = {
 def initialize_database_scraper():
     from soup_targets import soup_targets, wiktionary_root
     from controllers.sql import SQLController
-    from controllers.beautifulsoup import SoupStemScraper, SoupVerbClassScraper, SoupAdverbScraper
+    from controllers.beautifulsoup import SoupStemScraper, SoupVerbClassScraper, \
+        SoupAdverbScraper, SoupAdjectiveScraper
 
     cont = SQLController.get_instance()
     cont.reset_database()
@@ -284,6 +285,9 @@ def initialize_database_scraper():
                     elif t == 'adverbs':
                         scraper = SoupAdverbScraper(wiktionary_root + '/wiki/' + gurl, s)
                         words += [(s, w) for w in scraper.find_words()]
+                    elif t == 'adjectives':
+                        scraper = SoupAdjectiveScraper(wiktionary_root + '/wiki/' + gurl, s)
+                        words += scraper.find_words()
 
             else:
                 scraper = None
@@ -300,6 +304,9 @@ def initialize_database_scraper():
                 elif t == 'adverbs':
                     scraper = SoupAdverbScraper(wiktionary_root + '/wiki/' + url, s)  # There are no tables for adverbs
                     words += [(s, w) for w in scraper.find_words()]
+                elif t == 'adjectives':
+                    scraper = SoupAdjectiveScraper(wiktionary_root + '/wiki/' + url, s)
+                    words += scraper.find_words()
             debug('Found {} words so far'.format(len(words)))
 
         tuple_dict = conversion_dict[t](words)
@@ -679,7 +686,7 @@ def insert_verb_transitivities(conjugations: List[Tuple[str, bool, int, bool]]):
 def insert_adverbs(adverbs: List[Tuple[str, bool, bool]]):
     cont = SQLController.get_instance()
 
-    debug('Inserting Verb Conjugation Table')
+    debug('Inserting Adverb Table')
     words = list(set([db_string(d[0]) for d in adverbs]))
     where_clause = 'name in ({})'.format(','.join(words)) if len(words) > 1 else 'name = {}'.format(words[0])
     indices = cont.select_conditional('old_english_words', 'id, name, pos', where_clause)
@@ -711,7 +718,7 @@ def insert_adverbs(adverbs: List[Tuple[str, bool, bool]]):
 def insert_adjectives(adverbs: List[Tuple[str, str, bool, str, str, str]]):
     cont = SQLController.get_instance()
 
-    debug('Inserting Verb Conjugation Table')
+    debug('Inserting Adjective Declension Table')
     words = list(set([db_string(d[0]) for d in adverbs]))
     where_clause = 'name in ({})'.format(','.join(words)) if len(words) > 1 else 'name = {}'.format(words[0])
     indices = cont.select_conditional('old_english_words', 'id, name, pos', where_clause)

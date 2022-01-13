@@ -286,6 +286,7 @@ class SoupAdjectiveScraper(OETableWordScraper):
         super().__init__(url, r'Adjective.*', r'(Conjugation|Declension).*', [], all_pages, initial_table_set)
         self.table_header_regex = r'Declension of .+ — (?P<strength>Strong|Weak)( only)?'
         self.single_table_key = []
+        self.setup_table_key()
 
     def setup_table_key(self):
         cases = ['nominative', 'accusative', 'genitive', 'dative', 'instrumental']
@@ -298,7 +299,7 @@ class SoupAdjectiveScraper(OETableWordScraper):
             for gi, g in enumerate(genders):
                 self.table_parsing_key.append(('singular {} {}'.format(c, g), ci + 1, gi + 1))
                 self.table_parsing_key.append(('plural {} {}'.format(c, g), ci + 7, gi + 1))
-                self.single_table_key.append(('{} {}'.format(c, g), ci + 7, gi + 1))
+                self.single_table_key.append(('{} {}'.format(c, g), ci + 1, gi + 1))
 
     def parse_forms(self, word: str, soup, form_dict: Dict[str, Union[str, List[str], List[Dict[str, str]]]]):
         header = soup.find_next('span', attrs={'id': self.table_regex})
@@ -319,24 +320,25 @@ class SoupAdjectiveScraper(OETableWordScraper):
                     tables = new_tables
 
             for tbl in tables:
-                if tbl.text not in self.table_set:
-                    self.table_set.add(tbl.text)
+                if re.match(self.derived_terms_regex, tbl.text) is None:
+                    if tbl.text not in self.table_set:
+                        self.table_set.add(tbl.text)
 
-                    stren = 'none'
-                    match = re.match(self.table_header_regex, tbl.text)
-                    if match is not None:
-                        stren = match['strength']
+                        stren = 'none'
+                        match = re.match(self.table_header_regex, tbl.text)
+                        if match is not None:
+                            stren = match['strength']
 
-                    tbl_tag = tbl.find_next('table')
+                        tbl_tag = tbl.find_next('table')
 
-                    rows = tbl_tag.find_all('tr')
-                    if len(rows) > 6:
-                        data_dict = self.parse_table(tbl_tag, self.table_parsing_key)
-                    else:
-                        data_dict = self.parse_table(tbl_tag, self.plural_table_key)
+                        rows = tbl_tag.find_all('tr')
+                        if len(rows) > 6:
+                            data_dict = self.parse_table(tbl_tag, self.table_parsing_key)
+                        else:
+                            data_dict = self.parse_table(tbl_tag, self.single_table_key)
 
-                    data_dict['strength'] = stren
-                    form_dict['forms'].append((stren, data_dict))
+                        data_dict['strength'] = stren
+                        form_dict['forms'].append(data_dict)
         else:
             debug('{} has no form table'.format(word))
 
