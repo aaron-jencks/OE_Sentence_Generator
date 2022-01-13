@@ -228,7 +228,7 @@ class OETableWordScraper(OEWordScraper):
                     if tbl.text not in self.table_set:
                         self.table_set.add(tbl.text)
                         tbl_tag = tbl.find_next('table')
-    
+
                         data_dict = self.parse_table(tbl_tag, self.table_parsing_key)
                         form_dict['forms'].append(data_dict)
         else:
