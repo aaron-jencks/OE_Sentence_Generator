@@ -7,6 +7,37 @@ from typing import List, Tuple, Union
 import random as rng
 
 
+class POS:
+    def __init__(self, root: str, pos: str):
+        self.root = root
+        self.pos = pos
+
+    @property
+    def index(self) -> List[int]:
+        cont = SQLController.get_instance()
+
+        indices = cont.select_conditional('old_english_words', 'id',
+                                          'name = "{}" and pos = "{}"'.format(self.root, self.pos))
+
+        if len(indices) > 1:
+            debug('Multiple indices found for root {} with indices {} and {}'.format(self.root,
+                                                                                     indices[0][0],
+                                                                                     indices[1][0])
+                  )
+        elif len(indices) == 0:
+            debug('No index found for {}'.format(self.root))
+            return [-1]
+
+        return [index[0] for index in indices]
+
+    @property
+    def meaning(self) -> List[str]:
+        cont = SQLController.get_instance()
+        definitions = cont.select_conditional('old_english_words', 'definition',
+                                              'id in ({})'.format(str(self.index)[1:-1]))
+        return definitions
+
+
 class Noun:
     def __init__(self, root: str):
         self.root = root
