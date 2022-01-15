@@ -38,39 +38,18 @@ class POS:
         return definitions
 
 
-class Noun:
-    def __init__(self, root: str):
-        self.root = root
-        self.case: Case = Case.ROOT
-        self.plurality: Plurality = Plurality.NONE
+class Declinable(POS):
+    def __init__(self, root: str, pos: str, selection_statement: str, declension_table: str):
+        super().__init__(root, pos)
+        self.delcension_table = declension_table
+        self.selection_statement = selection_statement
+        self.case = Case.ROOT
 
-    def __repr__(self) -> str:
-        return '{} {} {}'.format(self.root, self.case.name.lower(), self.plurality.name.lower())
+    def create_conditional_statement(self) -> str:
+        pass
 
-    @property
-    def index(self) -> List[int]:
-        cont = SQLController.get_instance()
-
-        indices = cont.select_conditional('old_english_words', 'id',
-                                          'name = "{}" and pos = "noun"'.format(self.root))
-
-        if len(indices) > 1:
-            debug('Multiple indices found for root {} with indices {} and {}'.format(self.root,
-                                                                                     indices[0][0],
-                                                                                     indices[1][0])
-                  )
-        elif len(indices) == 0:
-            debug('No index found for {}'.format(self.root))
-            return [-1]
-
-        return [index[0] for index in indices]
-
-    @property
-    def meaning(self) -> List[str]:
-        cont = SQLController.get_instance()
-        definitions = cont.select_conditional('old_english_words', 'definition',
-                                              'id in ({})'.format(str(self.index)[1:-1]))
-        return definitions
+    def parse_declension_results(self, declensions: List[tuple]) -> List[tuple]:
+        pass
 
     def get_declension(self) -> str:
         cont = SQLController.get_instance()
@@ -78,25 +57,18 @@ class Noun:
         if self.case == Case.ROOT:
             return self.root
         else:
-            declensions = cont.select_conditional('declensions', 'word',
-                                                  'origin in ({}) and noun_case = "{}"{}'.format(
-                                                      str(self.index)[1:-1],
-                                                      self.case.name.lower(),
-                                                      ' and plurality = "{}"'.format(
-                                                        self.plurality.name.lower())
-                                                      if self.plurality != Plurality.NONE else
-                                                      ''))
+            declensions = cont.select_conditional(self.delcension_table, 'word',
+                                                  self.create_conditional_statement())
 
             if len(declensions) > 1:
-                debug('Multiple declensions for {} in {} {} '
+                debug('Multiple declensions for {} in {} '
                       'form found with indices {} and {}'.format(self.root,
                                                                  self.case.name.lower(),
-                                                                 self.plurality.name.lower(),
                                                                  declensions[0][0],
                                                                  declensions[1][0]))
             elif len(declensions) == 0:
-                debug('No word found for {} in the {} {}'.format(self.root,
-                                                                 self.case.name.lower(), self.plurality.name.lower()))
+                debug('No word found for {} in the {}'.format(self.root,
+                                                              self.case.name.lower()))
                 return self.root
 
             dec_index = [d[0] for d in declensions]
@@ -105,8 +77,29 @@ class Noun:
 
     def get_possible_declensions(self) -> List[Tuple[Case, Plurality]]:
         cont = SQLController.get_instance()
-        declensions = cont.select_conditional('declensions', 'plurality, noun_case', 'origin in ({})'.format(
-            str(self.index)[1:-1]))
+        declensions = cont.select_conditional(self.delcension_table, self.selection_statement,
+                                              'origin in ({})'.format(str(self.index)[1:-1]))
+        return self.parse_declension_results(declensions)
+
+
+class Noun(Declinable):
+    def __init__(self, root: str):
+        super().__init__(root, 'noun', 'plurality, noun_case', 'declensions')
+        self.plurality = Plurality.NONE
+
+    def __repr__(self) -> str:
+        return '{} {} {}'.format(self.root, self.case.name.lower(), self.plurality.name.lower())
+
+    def create_conditional_statement(self) -> str:
+        return 'origin in ({}) and noun_case = "{}"{}'.format(
+                                                      str(self.index)[1:-1],
+                                                      self.case.name.lower(),
+                                                      ' and plurality = "{}"'.format(
+                                                        self.plurality.name.lower())
+                                                      if self.plurality != Plurality.NONE else
+                                                      '')
+
+    def parse_declension_results(self, declensions: List[tuple]) -> List[tuple]:
         return [(Case.ROOT, Plurality.NONE)] + [(Case[c.upper()], Plurality[p.upper()]) for p, c in declensions]
 
     @staticmethod
@@ -123,9 +116,9 @@ class Noun:
         return Noun(rng.choice(possible_words)[0])
 
 
-class Verb:
+class Verb(POS):
     def __init__(self, root: str):
-        self.root = root
+        super().__init__(root, 'verb')
         self.plurality: Plurality = Plurality.NONE
         self.mood: Mood = Mood.ROOT
         self.person: Person = Person.NONE
@@ -144,31 +137,6 @@ class Verb:
             return '{} Subjunctive {} {}'.format(self.root, self.plurality, self.tense)
         else:
             return '{} {} {} {} {}'.format(self.root, self.mood, self.person, self.plurality, self.tense)
-
-    @property
-    def index(self) -> List[int]:
-        cont = SQLController.get_instance()
-
-        indices = cont.select_conditional('old_english_words', 'id',
-                                          'name = "{}" and pos = "verb"'.format(self.root))
-
-        if len(indices) > 1:
-            debug('Multiple indices found for root {} with indices {} and {}'.format(self.root,
-                                                                                     indices[0][0],
-                                                                                     indices[1][0])
-                  )
-        elif len(indices) == 0:
-            debug('No index found for {}'.format(self.root))
-            return [-1]
-
-        return [index[0] for index in indices]
-
-    @property
-    def meaning(self) -> List[str]:
-        cont = SQLController.get_instance()
-        definitions = cont.select_conditional('old_english_words', 'definition',
-                                              'id in ({})'.format(str(self.index)[1:-1]))
-        return definitions
 
     def get_conjugation(self) -> str:
         cont = SQLController.get_instance()
@@ -230,34 +198,9 @@ class Verb:
         return Verb(rng.choice(possible_words)[0])
 
 
-class Adverb:
+class Adverb(POS):
     def __init__(self, a: str):
-        self.root = a
-
-    @property
-    def index(self) -> List[int]:
-        cont = SQLController.get_instance()
-
-        indices = cont.select_conditional('old_english_words', 'id',
-                                          'name = "{}" and pos = "noun"'.format(self.root))
-
-        if len(indices) > 1:
-            debug('Multiple indices found for root {} with indices {} and {}'.format(self.root,
-                                                                                     indices[0][0],
-                                                                                     indices[1][0])
-                  )
-        elif len(indices) == 0:
-            debug('No index found for {}'.format(self.root))
-            return [-1]
-
-        return [index[0] for index in indices]
-
-    @property
-    def meaning(self) -> List[str]:
-        cont = SQLController.get_instance()
-        definitions = cont.select_conditional('old_english_words', 'definition',
-                                              'id in ({})'.format(str(self.index)[1:-1]))
-        return definitions
+        super().__init__(a, 'adverb')
 
     @staticmethod
     def get_random_word():
@@ -266,10 +209,9 @@ class Adverb:
         return Adverb(rng.choice(possible_words)[0])
 
 
-class Adjective:
+class Adjective(Declinable):
     def __init__(self, root: str):
-        self.root = root
-        self.case: Case = Case.ROOT
+        super().__init__(root, 'adjective', 'strength, gender, plurality, noun_case', 'adjectives')
         self.plurality: Plurality = Plurality.NONE
         self.gender: Gender = Gender.NONE
         self.strength = False
@@ -277,71 +219,17 @@ class Adjective:
     def __repr__(self) -> str:
         return '{}'.format(self.root)
 
-    @property
-    def index(self) -> List[int]:
-        cont = SQLController.get_instance()
+    def create_conditional_statement(self) -> str:
+        condition = 'strength = {} and noun_case = "{}"'.format(1 if self.strength else 0, self.case.name.lower())
 
-        indices = cont.select_conditional('old_english_words', 'id',
-                                          'name = "{}" and pos = "adjective"'.format(self.root))
+        if self.plurality != Plurality.NONE:
+            condition += ' and plurality = "{}"'.format(self.plurality.name.lower())
+        if self.gender != Gender.NONE:
+            condition += ' and gender = "{}"'.format(self.gender.name.lower())
 
-        if len(indices) > 1:
-            debug('Multiple indices found for root {} with indices {} and {}'.format(self.root,
-                                                                                     indices[0][0],
-                                                                                     indices[1][0])
-                  )
-        elif len(indices) == 0:
-            debug('No index found for {}'.format(self.root))
-            return [-1]
+        return 'origin in ({}) and {}'.format(str(self.index)[1:-1], condition)
 
-        return [index[0] for index in indices]
-
-    @property
-    def meaning(self) -> List[str]:
-        cont = SQLController.get_instance()
-        definitions = cont.select_conditional('old_english_words', 'definition',
-                                              'id in ({})'.format(str(self.index)[1:-1]))
-        return definitions
-
-    def get_declension(self) -> str:
-        cont = SQLController.get_instance()
-
-        if self.case == Case.ROOT:
-            return self.root
-        else:
-            condition = 'strength = {} and noun_case = "{}"'.format(1 if self.strength else 0, self.case.name.lower())
-
-            if self.plurality != Plurality.NONE:
-                condition += ' and plurality = "{}"'.format(self.plurality.name.lower())
-            if self.gender != Gender.NONE:
-                condition += ' and gender = "{}"'.format(self.gender.name.lower())
-
-            declensions = cont.select_conditional('adjectives', 'word',
-                                                  'origin in ({}) and {}'.format(
-                                                      str(self.index)[1:-1],
-                                                      condition))
-
-            if len(declensions) > 1:
-                debug('Multiple declensions for {} in {} {} '
-                      'form found with indices {} and {}'.format(self.root,
-                                                                 self.case.name.lower(),
-                                                                 self.plurality.name.lower(),
-                                                                 declensions[0][0],
-                                                                 declensions[1][0]))
-            elif len(declensions) == 0:
-                debug('No word found for {} in the {} {}'.format(self.root,
-                                                                 self.case.name.lower(), self.plurality.name.lower()))
-                return self.root
-
-            dec_index = [d[0] for d in declensions]
-
-            return dec_index[0]
-
-    def get_possible_declensions(self) -> List[Tuple[bool, Gender, Case, Plurality]]:
-        cont = SQLController.get_instance()
-        declensions = cont.select_conditional('adjectives',
-                                              'strength, gender, plurality, noun_case', 'origin in ({})'.format(
-                str(self.index)[1:-1]))
-
+    def parse_declension_results(self, declensions: List[tuple]) -> List[tuple]:
         return [(False, Gender.NONE, Case.ROOT, Plurality.NONE)] + \
                [(s == 1, Gender[g.upper()], Case[c.upper()], Plurality[p.upper()]) for s, g, p, c in declensions]
 
@@ -356,5 +244,44 @@ class Adjective:
             return Noun(cont.select_conditional('old_english_words', 'name', 'id = {}'.format(word))[0][0])
         else:
             possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "adjective" and is_affix = 0')
+
+        return Adjective(rng.choice(possible_words)[0])
+
+
+class Determiner(Declinable):
+    def __init__(self, root: str):
+        super().__init__(root, 'determiner', 'strength, gender, plurality, noun_case', 'adjectives')
+        self.plurality: Plurality = Plurality.NONE
+        self.gender: Gender = Gender.NONE
+        self.strength = False
+
+    def __repr__(self) -> str:
+        return '{}'.format(self.root)
+
+    def create_conditional_statement(self) -> str:
+        condition = 'strength = {} and noun_case = "{}"'.format(1 if self.strength else 0, self.case.name.lower())
+
+        if self.plurality != Plurality.NONE:
+            condition += ' and plurality = "{}"'.format(self.plurality.name.lower())
+        if self.gender != Gender.NONE:
+            condition += ' and gender = "{}"'.format(self.gender.name.lower())
+
+        return 'origin in ({}) and {}'.format(str(self.index)[1:-1], condition)
+
+    def parse_declension_results(self, declensions: List[tuple]) -> List[tuple]:
+        return [(False, Gender.NONE, Case.ROOT, Plurality.NONE)] + \
+               [(s == 1, Gender[g.upper()], Case[c.upper()], Plurality[p.upper()]) for s, g, p, c in declensions]
+
+    @staticmethod
+    def get_random_word(restrictions: Union[List[WordRestriction], None] = None):
+        cont = SQLController.get_instance()
+        if restrictions is not None and len(restrictions) > 0:
+            constraint_string = (' and '.join([r.get_sql_constraint() for r in restrictions])
+                                 if restrictions is not None else '')
+            possible_words = cont.select_conditional('adjectives', 'distinct origin', constraint_string)
+            word = rng.choice(possible_words)[0]
+            return Noun(cont.select_conditional('old_english_words', 'name', 'id = {}'.format(word))[0][0])
+        else:
+            possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "determiner" and is_affix = 0')
 
         return Adjective(rng.choice(possible_words)[0])
