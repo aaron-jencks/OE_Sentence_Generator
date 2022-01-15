@@ -246,3 +246,42 @@ class Adjective(Declinable):
             possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "adjective" and is_affix = 0')
 
         return Adjective(rng.choice(possible_words)[0])
+
+
+class Determiner(Declinable):
+    def __init__(self, root: str):
+        super().__init__(root, 'determiner', 'strength, gender, plurality, noun_case', 'adjectives')
+        self.plurality: Plurality = Plurality.NONE
+        self.gender: Gender = Gender.NONE
+        self.strength = False
+
+    def __repr__(self) -> str:
+        return '{}'.format(self.root)
+
+    def create_conditional_statement(self) -> str:
+        condition = 'strength = {} and noun_case = "{}"'.format(1 if self.strength else 0, self.case.name.lower())
+
+        if self.plurality != Plurality.NONE:
+            condition += ' and plurality = "{}"'.format(self.plurality.name.lower())
+        if self.gender != Gender.NONE:
+            condition += ' and gender = "{}"'.format(self.gender.name.lower())
+
+        return 'origin in ({}) and {}'.format(str(self.index)[1:-1], condition)
+
+    def parse_declension_results(self, declensions: List[tuple]) -> List[tuple]:
+        return [(False, Gender.NONE, Case.ROOT, Plurality.NONE)] + \
+               [(s == 1, Gender[g.upper()], Case[c.upper()], Plurality[p.upper()]) for s, g, p, c in declensions]
+
+    @staticmethod
+    def get_random_word(restrictions: Union[List[WordRestriction], None] = None):
+        cont = SQLController.get_instance()
+        if restrictions is not None and len(restrictions) > 0:
+            constraint_string = (' and '.join([r.get_sql_constraint() for r in restrictions])
+                                 if restrictions is not None else '')
+            possible_words = cont.select_conditional('adjectives', 'distinct origin', constraint_string)
+            word = rng.choice(possible_words)[0]
+            return Noun(cont.select_conditional('old_english_words', 'name', 'id = {}'.format(word))[0][0])
+        else:
+            possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "determiner" and is_affix = 0')
+
+        return Adjective(rng.choice(possible_words)[0])
