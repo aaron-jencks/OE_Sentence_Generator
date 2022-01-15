@@ -179,9 +179,10 @@ def convert_word_dictionary_adverb(words: List[Tuple[str, Dict[str, Union[List[s
     return {'old_english_words': roots, 'adverbs': adverb_entries}
 
 
-def convert_word_dictionary_adjectives(words: List[Dict[str, Union[List[str], List[Dict[str,
-                                                                                        Union[str, Dict[str, str]]]],
-                                                                   str]]]) -> Dict[str, List[tuple]]:
+def convert_word_dictionary_adjectives_generic(words: List[Dict[str, Union[List[str], List[Dict[str,
+                                                                                                Union[str,
+                                                                                                      Dict[str, str]]]],
+                                                                           str]]], pos: str) -> Dict[str, List[tuple]]:
     """
     :param words: List of dictionaries to be converted
     {
@@ -203,6 +204,7 @@ def convert_word_dictionary_adjectives(words: List[Dict[str, Union[List[str], Li
         'nominative masculine'  if plurality is defined
     }
     }
+    :param pos: the POS of this list of words
     :return: Returns a dictionary with each key corresponding to a table and it's value a list of data to insert
     """
 
@@ -212,7 +214,7 @@ def convert_word_dictionary_adjectives(words: List[Dict[str, Union[List[str], Li
 
     for w in tqdm(words):
         for d in w['definitions']:
-            roots.append((db_string(w['word']), '"adjective"', db_string(d),
+            roots.append((db_string(w['word']), '"{}"'.format(pos), db_string(d),
                           w['word'].startswith('-') or w['word'].endswith('-')))  # Check for affix
 
         for form in w['forms']:
@@ -237,11 +239,24 @@ def convert_word_dictionary_adjectives(words: List[Dict[str, Union[List[str], Li
     return {'old_english_words': roots, 'adjectives': adjectives}
 
 
+def convert_word_dictionary_adjectives(words: List[Dict[str, Union[List[str], List[Dict[str, Union[str,
+                                                                                                   Dict[str, str]]]],
+                                                                   str]]]) -> Dict[str, List[tuple]]:
+    return convert_word_dictionary_adjectives_generic(words, 'adjective')
+
+
+def convert_word_dictionary_determiners(words: List[Dict[str, Union[List[str], List[Dict[str, Union[str,
+                                                                                                    Dict[str, str]]]],
+                                                                    str]]]) -> Dict[str, List[tuple]]:
+    return convert_word_dictionary_adjectives_generic(words, 'determiner')
+
+
 conversion_dict = {
     'nouns': convert_word_dictionary_noun,
     'verbs': convert_word_dictionary_verb,
     'adverbs': convert_word_dictionary_adverb,
-    'adjectives': convert_word_dictionary_adjectives
+    'adjectives': convert_word_dictionary_adjectives,
+    'determiners': convert_word_dictionary_determiners
 }
 
 
@@ -249,7 +264,7 @@ def initialize_database_scraper():
     from soup_targets import soup_targets, wiktionary_root
     from controllers.sql import SQLController
     from controllers.beautifulsoup import SoupStemScraper, SoupVerbClassScraper, \
-        SoupAdverbScraper, SoupAdjectiveScraper
+        SoupAdverbScraper, SoupAdjectiveScraper, SoupDeterminerScraper
 
     cont = SQLController.get_instance()
     cont.reset_database()
@@ -288,7 +303,9 @@ def initialize_database_scraper():
                     elif t == 'adjectives':
                         scraper = SoupAdjectiveScraper(wiktionary_root + '/wiki/' + gurl, s)
                         words += scraper.find_words()
-
+                    elif t == 'determiners':
+                        scraper = SoupDeterminerScraper(wiktionary_root + '/wiki/' + gurl, s)
+                        words += scraper.find_words()
             else:
                 scraper = None
                 if t == 'nouns':
@@ -306,6 +323,9 @@ def initialize_database_scraper():
                     words += [(s, w) for w in scraper.find_words()]
                 elif t == 'adjectives':
                     scraper = SoupAdjectiveScraper(wiktionary_root + '/wiki/' + url, s)
+                    words += scraper.find_words()
+                elif t == 'determiners':
+                    scraper = SoupDeterminerScraper(wiktionary_root + '/wiki/' + url, s)
                     words += scraper.find_words()
             debug('Found {} words so far'.format(len(words)))
 
