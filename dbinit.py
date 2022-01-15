@@ -402,11 +402,11 @@ def initialize_database_scraper():
             pronouns += tuple_dict['pronouns']
 
     cont.insert_record('old_english_words', roots)
-    # insert_declensions(declensions)
-    # insert_verb_conjugations(conjugations)
-    # insert_verb_transitivities(verbs)
-    # insert_adverbs(adverbs)
-    # insert_adjectives(adjectives)
+    insert_declensions(declensions)
+    insert_verb_conjugations(conjugations)
+    insert_verb_transitivities(verbs)
+    insert_adverbs(adverbs)
+    insert_adjectives(adjectives)
     insert_pronoun(pronouns)
 
 
