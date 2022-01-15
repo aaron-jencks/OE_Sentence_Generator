@@ -116,6 +116,47 @@ class Noun(Declinable):
         return Noun(rng.choice(possible_words)[0])
 
 
+class Pronoun(Declinable):
+    def __init__(self, root: str):
+        super().__init__(root, 'pronoun', 'plurality, noun_case, gender, person', 'pronouns')
+        self.plurality = Plurality.NONE
+        self.gender = Gender.NONE
+        self.person = Person.NONE
+
+    def __repr__(self) -> str:
+        return '{} {} {}'.format(self.root, self.case.name.lower(), self.plurality.name.lower())
+
+    def create_conditional_statement(self) -> str:
+        condition = 'noun_case = "{}"'.format(self.case.name.lower())
+
+        if self.plurality != Plurality.NONE:
+            condition += ' and plurality = "{}"'.format(self.plurality.name.lower())
+        if self.gender != Gender.NONE:
+            condition += ' and gender = "{}"'.format(self.gender.name.lower())
+        if self.person != Person.NONE:
+            condition += ' and person = "{}"'.format(self.person.name.lower())
+
+        return 'origin in ({}) and {}'.format(str(self.index)[1:-1], condition)
+
+    def parse_declension_results(self, declensions: List[tuple]) -> List[tuple]:
+        return [(Case.ROOT, Plurality.NONE, Gender.NONE, Person.NONE)] + \
+               [(Case[c.upper()], Plurality[p.upper()], Gender[g.upper()], Person[per.upper()])
+                for p, c, g, per in declensions]
+
+    @staticmethod
+    def get_random_word(restrictions: Union[List[WordRestriction], None] = None):
+        cont = SQLController.get_instance()
+        if restrictions is not None and len(restrictions) > 0:
+            constraint_string = (' and '.join([r.get_sql_constraint() for r in restrictions])
+                                 if restrictions is not None else '')
+            possible_words = cont.select_conditional('pronouns', 'distinct origin', constraint_string)
+            word = rng.choice(possible_words)[0]
+            return Noun(cont.select_conditional('old_english_words', 'name', 'id = {}'.format(word))[0][0])
+        else:
+            possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "pronoun" and is_affix = 0')
+        return Pronoun(rng.choice(possible_words)[0])
+
+
 class Verb(POS):
     def __init__(self, root: str):
         super().__init__(root, 'verb')
