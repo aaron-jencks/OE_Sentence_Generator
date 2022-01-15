@@ -1,6 +1,6 @@
-from grammar.pos import Noun, Verb
+from grammar.pos import Noun, Verb, Adjective, Adverb
 from utils.grammar import WordOrder, Case, Plurality, Person, Tense, Mood
-from grammar.restrictions import TransitivityRestriction
+from grammar.restrictions import TransitivityRestriction, ParticipleRestriction
 
 import random as rng
 from typing import List, Union
@@ -13,6 +13,24 @@ class Phrase:
 
     def meaning(self) -> str:
         pass
+
+
+class AdjectivePhrase(Phrase):
+    def __init__(self, a: Union[Adjective, Verb]):
+        if isinstance(a, Verb):
+            assert a.is_participle
+        self.adjective = a
+
+    def meaning(self) -> str:
+        return rng.choice(self.adjective.meaning)[0]
+
+    @staticmethod
+    def generate_random():
+        word = Adjective.get_random_word()
+        if rng.randint(0, 1) == 1:
+            word = Verb.get_random_word([ParticipleRestriction(True)])
+            word.is_participle = True
+        return AdjectivePhrase(word)
 
 
 class NounPhrase(Phrase):

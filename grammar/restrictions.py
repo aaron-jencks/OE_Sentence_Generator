@@ -28,3 +28,11 @@ class TransitivityRestriction(WordRestriction):
 
     def get_sql_constraint(self) -> str:
         return 'transitivity = {}'.format(1 if self._t else 0)
+
+
+class ParticipleRestriction(WordRestriction):
+    def __init__(self, t: bool):
+        self._t = t
+
+    def get_sql_constraint(self) -> str:
+        return 'participle = {}'.format(1 if self._t else 0)
