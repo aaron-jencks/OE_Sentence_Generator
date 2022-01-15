@@ -356,15 +356,15 @@ class SoupHeaderScraper(OEWordScraper):
             conjs = []
             w_soup = BeautifulSoup(resp, 'html.parser')
 
-            header = self.parse_definitions(w_soup, {})
+            pos_header = self.parse_definitions(w_soup, {})
 
-            if header is not None:
-                header = header.find_next('span', attrs={'id': re.compile('(Conjugation|Declension|Inflection).*')})
+            if pos_header is not None:
+                header = pos_header.find_next('span', attrs={'id': re.compile('(Conjugation|Declension|Inflection).*')})
 
                 if header is not None:
                     tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})]
 
-                    next_span = header.find_next('span', attrs={'class': 'mw-headline'})
+                    next_span = pos_header.find_next('h3')
                     if next_span is not None:
                         spans_table = next_span.find_next('div', attrs={'class': 'NavHead'})
                         if spans_table is not None:
@@ -441,6 +441,11 @@ class SoupVerbHeaderScraper(SoupHeaderScraper):
 class SoupNounHeaderScraper(SoupHeaderScraper):
     def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
         super().__init__(url, r'(Noun|Proper_noun|Suffix).*', all_pages, initial_table_set)
+
+
+class SoupPronounHeaderScraper(SoupHeaderScraper):
+    def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
+        super().__init__(url, r'Pronoun.*', all_pages, initial_table_set)
 
 
 class SoupAdjectiveHeaderScraper(SoupHeaderScraper):
