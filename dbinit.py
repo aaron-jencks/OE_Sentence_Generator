@@ -251,12 +251,61 @@ def convert_word_dictionary_determiners(words: List[Dict[str, Union[List[str], L
     return convert_word_dictionary_adjectives_generic(words, 'determiner')
 
 
+def convert_word_dictionary_pronoun(words: List[Dict[str, Union[List[str],
+                                                             Dict[str, str],
+                                                             str]]]) -> Dict[str, List[tuple]]:
+    """
+    :param words: List of dictionaries to be converted
+    {
+    'word': word,
+    'definitions': List of definitions,
+    'forms': List of dictionaries with case entries
+    }
+    :return: Returns a dictionary with each key corresponding to a table and it's value a list of data to insert
+    """
+
+    debug('Converting Noun dictionaries')
+    roots = []
+    declensions = []
+
+    for w in tqdm(words):
+        for d in w['definitions']:
+            roots.append((db_string(w['word']), '"pronoun"', db_string(d),
+                          w['word'].startswith('-') or w['word'].endswith('-')))  # Check for affix
+
+        for decl in w['forms']:
+            for c, d in decl.items():
+                chunks = c.split(' ')
+                gender = 'none'
+                person = 'none'
+                plurality = 'none'
+                if len(chunks) == 3:
+                    case, plurality, mystery = chunks
+                    if mystery in gender_list:
+                        gender = mystery
+                    else:
+                        person = mystery
+                else:
+                    case, mystery = chunks
+                    if mystery in gender_list:
+                        gender = mystery
+                    else:
+                        plurality = mystery
+
+                declensions.append((db_string(d), w['word'],
+                                    db_string(plurality.lower()), db_string(case.lower()),
+                                    db_string(gender.lower()), db_string(person.lower())))
+
+    return {'old_english_words': roots, 'pronouns': declensions}
+
+
 conversion_dict = {
     'nouns': convert_word_dictionary_noun,
     'verbs': convert_word_dictionary_verb,
     'adverbs': convert_word_dictionary_adverb,
     'adjectives': convert_word_dictionary_adjectives,
-    'determiners': convert_word_dictionary_determiners
+    'determiners': convert_word_dictionary_determiners,
+    'pronouns': convert_word_dictionary_pronoun
 }
 
 
@@ -264,7 +313,7 @@ def initialize_database_scraper():
     from soup_targets import soup_targets, wiktionary_root
     from controllers.sql import SQLController
     from controllers.beautifulsoup import SoupStemScraper, SoupVerbClassScraper, \
-        SoupAdverbScraper, SoupAdjectiveScraper, SoupDeterminerScraper
+        SoupAdverbScraper, SoupAdjectiveScraper, SoupDeterminerScraper, SoupPronounScraper
 
     cont = SQLController.get_instance()
     cont.reset_database()
@@ -278,6 +327,7 @@ def initialize_database_scraper():
     verbs = []
     adverbs = []
     adjectives = []
+    pronouns = []
     for t, u in soup_targets.items():
         words = []
         debug('Searching for {}'.format(t))
@@ -306,6 +356,9 @@ def initialize_database_scraper():
                     elif t == 'determiners':
                         scraper = SoupDeterminerScraper(wiktionary_root + '/wiki/' + gurl, s)
                         words += scraper.find_words()
+                    elif t == 'pronouns':
+                        scraper = SoupPronounScraper(wiktionary_root + '/wiki/' + gurl, s)
+                        words += scraper.find_words()
             else:
                 scraper = None
                 if t == 'nouns':
@@ -327,6 +380,9 @@ def initialize_database_scraper():
                 elif t == 'determiners':
                     scraper = SoupDeterminerScraper(wiktionary_root + '/wiki/' + url, s)
                     words += scraper.find_words()
+                elif t == 'pronouns':
+                    scraper = SoupPronounScraper(wiktionary_root + '/wiki/' + url, s)
+                    words += scraper.find_words()
             debug('Found {} words so far'.format(len(words)))
 
         tuple_dict = conversion_dict[t](words)
@@ -342,13 +398,16 @@ def initialize_database_scraper():
             adverbs += tuple_dict['adverbs']
         if 'adjectives' in tuple_dict:
             adjectives += tuple_dict['adjectives']
+        if 'pronouns' in tuple_dict:
+            pronouns += tuple_dict['pronouns']
 
     cont.insert_record('old_english_words', roots)
-    insert_declensions(declensions)
-    insert_verb_conjugations(conjugations)
-    insert_verb_transitivities(verbs)
-    insert_adverbs(adverbs)
-    insert_adjectives(adjectives)
+    # insert_declensions(declensions)
+    # insert_verb_conjugations(conjugations)
+    # insert_verb_transitivities(verbs)
+    # insert_adverbs(adverbs)
+    # insert_adjectives(adjectives)
+    insert_pronoun(pronouns)
 
 
 def initialize_database_dump():
@@ -567,6 +626,41 @@ def insert_declensions(declensions: List[Tuple[str, str, str, str]]):
                 debug('{} was not found to be a root word'.format(o))
 
         cont.insert_record('declensions', tuples)
+
+
+def insert_pronoun(declensions: List[Tuple[str, str, str, str, str, str]]):
+    cont = SQLController.get_instance()
+
+    debug('Inserting Noun Declension Table')
+    if len(declensions) > 0:
+        words = list(set([db_string(d[1]) for d in declensions]))  # for scraper style
+        where_clause = 'name in ({})'.format(','.join(words)) if len(words) > 1 else 'name = {}'.format(words[0])
+        indices = cont.select_conditional('old_english_words', 'id, name, pos', where_clause)
+
+        debug('Generating foreign key dictionary')
+        pos_dict = {}
+        index_dict = {}
+        for index, name, pos in indices:
+            if name not in index_dict:
+                index_dict[name] = index
+                pos_dict[name] = pos
+            elif pos == 'pronoun' and pos_dict[name] != 'pronoun':
+                index_dict[name] = index
+                pos_dict[name] = pos
+            elif pos == 'pronoun':
+                debug('Possible ambiguous declension of {} as a {} and {}'.format(name, pos, pos_dict[name]))
+
+        debug('linking...')
+        tuples = []
+        for w, o, p, c, g, per in declensions:  # for scraper style
+            # For scraper style
+            orig = o  # for scraper style
+            if orig in index_dict:
+                tuples.append((w, index_dict[orig], p, c, per, g))
+            else:
+                debug('{} was not found to be a root word'.format(o))
+
+        cont.insert_record('pronouns', tuples)
 
 
 def insert_ipa(declensions: List[Tuple[str, str, int, bool]]):
