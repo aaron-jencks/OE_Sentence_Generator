@@ -349,6 +349,58 @@ class SoupDeterminerScraper(SoupAdjectiveScraper):
         self.pos_regex = re.compile(r'Determiner.*')
 
 
+class SoupPronounScraper(OETableWordScraper):
+    def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
+        super().__init__(url, r'Adjective.*', r'(Declension|Inflection).*', [], all_pages, initial_table_set)
+        self.table_keys = []
+        self.setup_table_keys()
+
+    def setup_table_keys(self):
+        self.table_keys = [
+            [
+                ('nominative singular', 1, 1),
+                ('nominative plural', 1, 2),
+                ('accusative singular', 2, 1),
+                ('accusative plural', 2, 2),
+                ('genitive singular', 3, 1),
+                ('genitive plural', 3, 2),
+                ('dative singular', 4, 1),
+                ('dative plural', 4, 2),
+                ('instrumental singular', 4, 1),
+                ('instrumental plural', 4, 2),
+            ],
+            [], [], [], [], [], []
+        ]
+
+        persons = ['first', 'second', 'third', 'plural']
+        pluralities = ['singular', 'dual', 'plural']
+        cases = ['nominative', 'accusative', 'genitive', 'dative', 'instrumental']
+        genders = ['masculine', 'feminine', 'neuter']
+
+        for pi, p in enumerate(persons):
+            for pluri, plur in enumerate(pluralities):
+                for ci, c in enumerate(cases):
+                    self.table_keys[1].append((' '.join([c, plur, p]),
+                                               (pi * 5) + 1 + (ci if ci < 4 else 3),
+                                               pluri + 1))
+
+        for ci, c in enumerate(cases):
+            for gi, g in enumerate(genders):
+                self.table_keys[2].append((' '.join([c, g]), ci + 1,
+                                           1 if gi < 2 else 2))
+
+        for pluri, plur in enumerate([pluralities[0], pluralities[2]]):
+            for ci, c in enumerate(cases):
+                for gi, g in enumerate(genders):
+                    self.table_keys[3].append((' '.join([c, plur, g]), (pluri * 6) + ci + 1,
+                                               (gi + 1) if pluri < 1 else 1))
+                    self.table_keys[4].append((' '.join([c, plur, g]), (pluri * 6) + ci + 1,
+                                               (gi + 1) if pluri < 1 else 1))
+                    self.table_keys[4].append((' '.join([c, plur, g]), (pluri * 6) + ci + 1,
+                                               (gi + 1) if pluri < 1 else 2))
+                    self.table_keys[5].append((' '.join([c, plur, g]), (pluri * 6) + ci + 1, gi + 1))
+
+
 class SoupHeaderScraper(OEWordScraper):
     def parse_page(self, word: str, url: str) -> Union[List[str], None]:
         resp = simple_get(url)
