@@ -400,6 +400,9 @@ class SoupPronounScraper(OETableWordScraper):
                                                (gi + 1) if pluri < 1 else 2))
                     self.table_keys[5].append((' '.join([c, plur, g]), (pluri * 6) + ci + 1, gi + 1))
 
+    def determine_table_type(self, tbl) -> int:
+        pass
+
 
 class SoupHeaderScraper(OEWordScraper):
     def parse_page(self, word: str, url: str) -> Union[List[str], None]:
@@ -439,8 +442,10 @@ class SoupHeaderScraper(OEWordScraper):
                                 for element in data:
                                     if element.name == 'th':
                                         conj += element.text.replace('\n', '') + '\t'
-                                    else:
+                                    elif len(element.text) > 2 or '—' in element.text:
                                         conj += '_\t'
+                                    else:
+                                        conj += '.\t'
                                 conj += '\n'
                             conjs.append(conj)
                     return conjs if len(conjs) > 0 else None
