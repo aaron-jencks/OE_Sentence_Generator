@@ -41,22 +41,6 @@ def simple_get(url: str) -> bytes:
         error('URL {} had an error {} {}'.format(url, e.code, e.read()))
 
 
-def table_parsing(table: BeautifulSoup, parsings: List[Tuple[str, int, int]]) -> Dict[str, str]:
-    result = {}
-    rows = table.find_all('tr')
-    for name, row, col in parsings:
-        if row < len(rows):
-            r = rows[row]
-            columns = r.findAll(['th', 'td'])
-            if col < len(columns):
-                result[name] = columns[col].text.strip()
-            else:
-                debug('Index {} doesn\'t exist in row {} for table with {} columns'.format(col, name, len(columns)))
-        else:
-            debug('Index {} doesn\'t fit inside a table with {} rows'.format(row, len(rows)))
-    return result
-
-
 class OEScraper:
     def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
         self.url = url
@@ -351,7 +335,7 @@ class SoupDeterminerScraper(SoupAdjectiveScraper):
 
 class SoupPronounScraper(OETableWordScraper):
     def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
-        super().__init__(url, r'Adjective.*', r'(Declension|Inflection).*', [], all_pages, initial_table_set)
+        super().__init__(url, r'Pronoun.*', r'(Declension|Inflection).*', [], all_pages, initial_table_set)
         self.table_keys = []
         self.setup_table_keys()
 
@@ -408,9 +392,9 @@ class SoupPronounScraper(OETableWordScraper):
             return 2
         elif len(rows) < 13:
             columns = [r.findAll(['th', 'td']) for r in rows]
-            if all([len(col) < 3 for col in columns]):
+            if all([len(col) < 3 for col in columns[7:]]):
                 return 3
-            elif any([len(col) == 2 for col in columns]):
+            elif any([len(col) == 3 for col in columns[7:]]):
                 return 4
             elif '—' in columns[7][1].text:
                 return 6
@@ -427,15 +411,17 @@ class SoupPronounScraper(OETableWordScraper):
 
             next_span = soup.find_next('h3')
             if next_span is not None:
-                spans_table = next_span.find_next('div', attrs={'class': 'NavHead'})
+                spans_table = next_span.find_next('span', attrs={'id': self.table_regex})
                 if spans_table is not None:
-                    new_tables = []
-                    for tbl in tables:
-                        if tbl.text == spans_table.text:
-                            break
-                        else:
-                            new_tables.append(tbl)
-                    tables = new_tables
+                    spans_table = spans_table.find_next('div', attrs={'class': 'NavHead'})
+                    if spans_table is not None:
+                        new_tables = []
+                        for tbl in tables:
+                            if tbl.text == spans_table.text:
+                                break
+                            else:
+                                new_tables.append(tbl)
+                        tables = new_tables
 
             for tbl in tables:
                 if re.match(self.derived_terms_regex, tbl.text) is None:
@@ -444,7 +430,8 @@ class SoupPronounScraper(OETableWordScraper):
 
                         tbl_tag = tbl.find_next('table')
 
-                        data_dict = self.parse_table(tbl_tag, self.table_keys[self.determine_table_type(tbl_tag)])
+                        table_type = self.determine_table_type(tbl_tag)
+                        data_dict = self.parse_table(tbl_tag, self.table_keys[table_type])
 
                         form_dict['forms'].append(data_dict)
         else:
