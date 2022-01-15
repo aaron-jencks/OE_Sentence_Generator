@@ -12,7 +12,7 @@ import re
 
 
 case_list: List[str] = ['oblique', 'genitive', 'dative', 'accusative', 'nominative', 'instrumental']
-plurality_list: List[str] = ['singular', 'plural']
+plurality_list: List[str] = ['singular', 'plural', 'dual']
 
 person_list: List[str] = ['first-person', 'second-person', 'third-person']
 tense: List[str] = ['past', 'present']
