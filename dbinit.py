@@ -208,7 +208,7 @@ def convert_word_dictionary_adjectives_generic(words: List[Dict[str, Union[List[
     :return: Returns a dictionary with each key corresponding to a table and it's value a list of data to insert
     """
 
-    debug('Converting Noun dictionaries')
+    debug('Converting {} dictionaries'.format(pos))
     roots = []
     adjectives = []
 

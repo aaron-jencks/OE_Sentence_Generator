@@ -346,7 +346,7 @@ class SoupAdjectiveScraper(OETableWordScraper):
 class SoupDeterminerScraper(SoupAdjectiveScraper):
     def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
         super().__init__(url, all_pages, initial_table_set)
-        self.pos_regex = r'Determiner.*'
+        self.pos_regex = re.compile(r'Determiner.*')
 
 
 class SoupHeaderScraper(OEWordScraper):
