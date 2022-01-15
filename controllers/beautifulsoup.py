@@ -372,7 +372,7 @@ class SoupPronounScraper(OETableWordScraper):
             [], [], [], [], [], []
         ]
 
-        persons = ['first', 'second', 'third', 'plural']
+        persons = ['first-person', 'second-person', 'third-person', 'plural']
         pluralities = ['singular', 'dual', 'plural']
         cases = ['nominative', 'accusative', 'genitive', 'dative', 'instrumental']
         genders = ['masculine', 'feminine', 'neuter']
@@ -382,7 +382,7 @@ class SoupPronounScraper(OETableWordScraper):
                 for ci, c in enumerate(cases):
                     self.table_keys[1].append((' '.join([c, plur, p]),
                                                (pi * 5) + 1 + (ci if ci < 4 else 3),
-                                               pluri + 1))
+                                               (pluri + 1) if pi < 3 else 2))
 
         for ci, c in enumerate(cases):
             for gi, g in enumerate(genders):
@@ -395,13 +395,60 @@ class SoupPronounScraper(OETableWordScraper):
                     self.table_keys[3].append((' '.join([c, plur, g]), (pluri * 6) + ci + 1,
                                                (gi + 1) if pluri < 1 else 1))
                     self.table_keys[4].append((' '.join([c, plur, g]), (pluri * 6) + ci + 1,
-                                               (gi + 1) if pluri < 1 else 1))
-                    self.table_keys[4].append((' '.join([c, plur, g]), (pluri * 6) + ci + 1,
+                                               (gi + 1) if pluri < 1 else 2))
+                    self.table_keys[6].append((' '.join([c, plur, g]), (pluri * 6) + ci + 1,
                                                (gi + 1) if pluri < 1 else 2))
                     self.table_keys[5].append((' '.join([c, plur, g]), (pluri * 6) + ci + 1, gi + 1))
 
     def determine_table_type(self, tbl) -> int:
-        pass
+        rows = tbl.find_all('tr')
+        if len(rows) < 6:
+            return 0
+        elif len(rows) < 7:
+            return 2
+        elif len(rows) < 13:
+            columns = [r.findAll(['th', 'td']) for r in rows]
+            if all([len(col) < 3 for col in columns]):
+                return 3
+            elif any([len(col) == 2 for col in columns]):
+                return 4
+            elif '—' in columns[7][1].text:
+                return 6
+            else:
+                return 5
+        else:
+            return 1
+
+    def parse_forms(self, word: str, soup, form_dict: Dict[str, Union[str, List[str], List[Dict[str, str]]]]):
+        header = soup.find_next('span', attrs={'id': self.table_regex})
+
+        if header is not None:
+            tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})]
+
+            next_span = soup.find_next('h3')
+            if next_span is not None:
+                spans_table = next_span.find_next('div', attrs={'class': 'NavHead'})
+                if spans_table is not None:
+                    new_tables = []
+                    for tbl in tables:
+                        if tbl.text == spans_table.text:
+                            break
+                        else:
+                            new_tables.append(tbl)
+                    tables = new_tables
+
+            for tbl in tables:
+                if re.match(self.derived_terms_regex, tbl.text) is None:
+                    if tbl.text not in self.table_set:
+                        self.table_set.add(tbl.text)
+
+                        tbl_tag = tbl.find_next('table')
+
+                        data_dict = self.parse_table(tbl_tag, self.table_keys[self.determine_table_type(tbl_tag)])
+
+                        form_dict['forms'].append(data_dict)
+        else:
+            debug('{} has no form table'.format(word))
 
 
 class SoupHeaderScraper(OEWordScraper):
