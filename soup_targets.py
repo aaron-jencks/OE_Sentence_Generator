@@ -31,5 +31,8 @@ soup_targets = {
         'all': 'Category:Old_English_adverbs',
         'comparative': 'Category:Old_English_comparative_adverbs',
         'superlative': 'Category:Old_English_superlative_adverbs'
+    },
+    'determiners': {
+        'all': 'Category:Old_English_determiners'
     }
 }
