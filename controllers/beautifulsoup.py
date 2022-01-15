@@ -442,10 +442,12 @@ class SoupHeaderScraper(OEWordScraper):
                                 for element in data:
                                     if element.name == 'th':
                                         conj += element.text.replace('\n', '') + '\t'
-                                    elif len(element.text) > 2 or '—' in element.text:
+                                    elif '—' in element.text:
+                                        conj += '.\t'
+                                    elif len(element.text) > 2:
                                         conj += '_\t'
                                     else:
-                                        conj += '.\t'
+                                        conj += '*\t'
                                 conj += '\n'
                             conjs.append(conj)
                     return conjs if len(conjs) > 0 else None
