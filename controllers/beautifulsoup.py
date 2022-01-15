@@ -343,6 +343,12 @@ class SoupAdjectiveScraper(OETableWordScraper):
             debug('{} has no form table'.format(word))
 
 
+class SoupDeterminerScraper(SoupAdjectiveScraper):
+    def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
+        super().__init__(url, all_pages, initial_table_set)
+        self.pos_regex = r'Determiner.*'
+
+
 class SoupHeaderScraper(OEWordScraper):
     def parse_page(self, word: str, url: str) -> Union[List[str], None]:
         resp = simple_get(url)
