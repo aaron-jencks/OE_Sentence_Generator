@@ -41,22 +41,6 @@ def simple_get(url: str) -> bytes:
         error('URL {} had an error {} {}'.format(url, e.code, e.read()))
 
 
-def table_parsing(table: BeautifulSoup, parsings: List[Tuple[str, int, int]]) -> Dict[str, str]:
-    result = {}
-    rows = table.find_all('tr')
-    for name, row, col in parsings:
-        if row < len(rows):
-            r = rows[row]
-            columns = r.findAll(['th', 'td'])
-            if col < len(columns):
-                result[name] = columns[col].text.strip()
-            else:
-                debug('Index {} doesn\'t exist in row {} for table with {} columns'.format(col, name, len(columns)))
-        else:
-            debug('Index {} doesn\'t fit inside a table with {} rows'.format(row, len(rows)))
-    return result
-
-
 class OEScraper:
     def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
         self.url = url
@@ -349,6 +333,111 @@ class SoupDeterminerScraper(SoupAdjectiveScraper):
         self.pos_regex = re.compile(r'Determiner.*')
 
 
+class SoupPronounScraper(OETableWordScraper):
+    def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
+        super().__init__(url, r'Pronoun.*', r'(Declension|Inflection).*', [], all_pages, initial_table_set)
+        self.table_keys = []
+        self.setup_table_keys()
+
+    def setup_table_keys(self):
+        self.table_keys = [
+            [
+                ('nominative singular', 1, 1),
+                ('nominative plural', 1, 2),
+                ('accusative singular', 2, 1),
+                ('accusative plural', 2, 2),
+                ('genitive singular', 3, 1),
+                ('genitive plural', 3, 2),
+                ('dative singular', 4, 1),
+                ('dative plural', 4, 2),
+                ('instrumental singular', 4, 1),
+                ('instrumental plural', 4, 2),
+            ],
+            [], [], [], [], [], []
+        ]
+
+        persons = ['first-person', 'second-person', 'third-person', 'plural']
+        pluralities = ['singular', 'dual', 'plural']
+        cases = ['nominative', 'accusative', 'genitive', 'dative', 'instrumental']
+        genders = ['masculine', 'feminine', 'neuter']
+
+        for pi, p in enumerate(persons):
+            for pluri, plur in enumerate(pluralities):
+                for ci, c in enumerate(cases):
+                    self.table_keys[1].append((' '.join([c, plur, p]),
+                                               (pi * 5) + 1 + (ci if ci < 4 else 3),
+                                               (pluri + 1) if pi < 3 else 2))
+
+        for ci, c in enumerate(cases):
+            for gi, g in enumerate(genders):
+                self.table_keys[2].append((' '.join([c, g]), ci + 1,
+                                           1 if gi < 2 else 2))
+
+        for pluri, plur in enumerate([pluralities[0], pluralities[2]]):
+            for ci, c in enumerate(cases):
+                for gi, g in enumerate(genders):
+                    self.table_keys[3].append((' '.join([c, plur, g]), (pluri * 6) + ci + 1,
+                                               (gi + 1) if pluri < 1 else 1))
+                    self.table_keys[4].append((' '.join([c, plur, g]), (pluri * 6) + ci + 1,
+                                               (gi + 1) if pluri < 1 else 2))
+                    self.table_keys[6].append((' '.join([c, plur, g]), (pluri * 6) + ci + 1,
+                                               (gi + 1) if pluri < 1 else 2))
+                    self.table_keys[5].append((' '.join([c, plur, g]), (pluri * 6) + ci + 1, gi + 1))
+
+    def determine_table_type(self, tbl) -> int:
+        rows = tbl.find_all('tr')
+        if len(rows) < 6:
+            return 0
+        elif len(rows) < 7:
+            return 2
+        elif len(rows) < 13:
+            columns = [r.findAll(['th', 'td']) for r in rows]
+            if all([len(col) < 3 for col in columns[7:]]):
+                return 3
+            elif any([len(col) == 3 for col in columns[7:]]):
+                return 4
+            elif '—' in columns[7][1].text:
+                return 6
+            else:
+                return 5
+        else:
+            return 1
+
+    def parse_forms(self, word: str, soup, form_dict: Dict[str, Union[str, List[str], List[Dict[str, str]]]]):
+        header = soup.find_next('span', attrs={'id': self.table_regex})
+
+        if header is not None:
+            tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})]
+
+            next_span = soup.find_next('h3')
+            if next_span is not None:
+                spans_table = next_span.find_next('span', attrs={'id': self.table_regex})
+                if spans_table is not None:
+                    spans_table = spans_table.find_next('div', attrs={'class': 'NavHead'})
+                    if spans_table is not None:
+                        new_tables = []
+                        for tbl in tables:
+                            if tbl.text == spans_table.text:
+                                break
+                            else:
+                                new_tables.append(tbl)
+                        tables = new_tables
+
+            for tbl in tables:
+                if re.match(self.derived_terms_regex, tbl.text) is None:
+                    if tbl.text not in self.table_set:
+                        self.table_set.add(tbl.text)
+
+                        tbl_tag = tbl.find_next('table')
+
+                        table_type = self.determine_table_type(tbl_tag)
+                        data_dict = self.parse_table(tbl_tag, self.table_keys[table_type])
+
+                        form_dict['forms'].append(data_dict)
+        else:
+            debug('{} has no form table'.format(word))
+
+
 class SoupHeaderScraper(OEWordScraper):
     def parse_page(self, word: str, url: str) -> Union[List[str], None]:
         resp = simple_get(url)
@@ -356,15 +445,15 @@ class SoupHeaderScraper(OEWordScraper):
             conjs = []
             w_soup = BeautifulSoup(resp, 'html.parser')
 
-            header = self.parse_definitions(w_soup, {})
+            pos_header = self.parse_definitions(w_soup, {})
 
-            if header is not None:
-                header = header.find_next('span', attrs={'id': re.compile('(Conjugation|Declension|Inflection).*')})
+            if pos_header is not None:
+                header = pos_header.find_next('span', attrs={'id': re.compile('(Conjugation|Declension|Inflection).*')})
 
                 if header is not None:
                     tables = [tbl for tbl in header.find_all_next('div', attrs={'class': 'NavHead'})]
 
-                    next_span = header.find_next('span', attrs={'class': 'mw-headline'})
+                    next_span = pos_header.find_next('h3')
                     if next_span is not None:
                         spans_table = next_span.find_next('div', attrs={'class': 'NavHead'})
                         if spans_table is not None:
@@ -387,8 +476,12 @@ class SoupHeaderScraper(OEWordScraper):
                                 for element in data:
                                     if element.name == 'th':
                                         conj += element.text.replace('\n', '') + '\t'
-                                    else:
+                                    elif '—' in element.text:
+                                        conj += '.\t'
+                                    elif len(element.text) > 2:
                                         conj += '_\t'
+                                    else:
+                                        conj += '*\t'
                                 conj += '\n'
                             conjs.append(conj)
                     return conjs if len(conjs) > 0 else None
@@ -441,6 +534,11 @@ class SoupVerbHeaderScraper(SoupHeaderScraper):
 class SoupNounHeaderScraper(SoupHeaderScraper):
     def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
         super().__init__(url, r'(Noun|Proper_noun|Suffix).*', all_pages, initial_table_set)
+
+
+class SoupPronounHeaderScraper(SoupHeaderScraper):
+    def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
+        super().__init__(url, r'Pronoun.*', all_pages, initial_table_set)
 
 
 class SoupAdjectiveHeaderScraper(SoupHeaderScraper):

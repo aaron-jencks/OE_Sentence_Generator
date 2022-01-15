@@ -34,5 +34,8 @@ soup_targets = {
     },
     'determiners': {
         'all': 'Category:Old_English_determiners'
+    },
+    'pronouns': {
+        'all': 'Category:Old_English_pronouns'
     }
 }

@@ -59,6 +59,18 @@ superlative bool not null,
 foreign key (word) references old_english_words(id)
 );'''
 
+pronoun_schemas = '''pronouns (
+id integer primary key,
+word text not null,
+origin integer not null,
+plurality text,
+noun_case text not null,
+gender text not null,
+person text,
+foreign key (origin) references old_english_words(id)
+);
+'''
+
 
 schemas = [
     old_english_schemas,
@@ -66,7 +78,8 @@ schemas = [
     declensions_schemas,
     verb_schemas,
     adjective_schemas,
-    adverb_schemas
+    adverb_schemas,
+    pronoun_schemas
 ]
 
 triggers = [
@@ -81,5 +94,6 @@ record_typing = {
     'declensions': '(word, origin, plurality, noun_case)',
     'verbs': '(word, strength, verb_class, transitivity)',
     'adjectives': '(origin, word, strength, gender, noun_case, plurality)',
-    'adverbs': '(word, comparative, superlative)'
+    'adverbs': '(word, comparative, superlative)',
+    'pronouns': '(word, origin, plurality, noun_case, gender, person)'
 }
