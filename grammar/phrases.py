@@ -1,6 +1,6 @@
 from grammar.pos import Noun, Verb, Adjective, Adverb
 from utils.grammar import WordOrder, Case, Plurality, Person, Tense, Mood
-from grammar.restrictions import TransitivityRestriction, ParticipleRestriction
+from grammar.restrictions import TransitivityRestriction, ParticipleRestriction, ModalityRestriction
 
 import random as rng
 from typing import List, Union
@@ -22,7 +22,7 @@ class AdjectivePhrase(Phrase):
         self.adjective = a
 
     def meaning(self) -> str:
-        return rng.choice(self.adjective.meaning)[0]
+        return rng.choice(self.adjective.meaning)
 
     @staticmethod
     def generate_random():
@@ -41,7 +41,7 @@ class NounPhrase(Phrase):
         return self.noun.get_declension()
 
     def meaning(self):
-        return rng.choice(self.noun.meaning)[0]
+        return rng.choice(self.noun.meaning)
 
     @staticmethod
     def generate_random():
@@ -49,18 +49,49 @@ class NounPhrase(Phrase):
 
 
 class VerbPhrase(Phrase):
-    def __init__(self, v: Verb):
-        self.verb = v
+    def __init__(self, main: Verb, modal: Verb = None, participle: Verb = None):
+        self.main = main
+        self.modal = modal
+        self.participle = participle
 
     def __repr__(self):
-        return self.verb.get_conjugation()
+        result = ''
+        if self.modal is not None:
+            result += self.modal.get_conjugation() + ' '
+        result += self.main.get_conjugation()
+        if self.participle is not None:
+            result += ' ' + self.participle.get_conjugation()
+        return result
 
     def meaning(self):
-        return rng.choice(self.verb.meaning)[0]
+        result = ''
+        if self.modal is not None:
+            result += rng.choice(self.modal.meaning) + ' '
+        result += rng.choice(self.main.meaning)
+        if self.participle is not None:
+            result += ' ' + rng.choice(self.participle.meaning)
+        return result
 
     @staticmethod
     def generate_random():
-        return VerbPhrase(Verb.get_random_word())
+        # VP: (Modal Main Participle*|Main Participle*|Main)
+        # Modal always comes first, Main verb + participle is auxiliary
+        version = rng.randint(1, 3)
+
+        main = Verb.get_random_word()
+
+        if version < 3:
+            participle = Verb.get_random_word([ParticipleRestriction(True)])
+            
+            if version == 1:
+                modal = Verb.get_random_word([ModalityRestriction(True)])
+                phrase = VerbPhrase(main, modal, participle)
+            else:
+                phrase = VerbPhrase(main, participle=participle)
+        else:
+            phrase = VerbPhrase(main)
+
+        return phrase
 
 
 class TransitiveVerbPhrase(VerbPhrase):

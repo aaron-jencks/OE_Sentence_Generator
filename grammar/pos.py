@@ -35,7 +35,7 @@ class POS:
         cont = SQLController.get_instance()
         definitions = cont.select_conditional('old_english_words', 'definition',
                                               'id in ({})'.format(str(self.index)[1:-1]))
-        return definitions
+        return [d[0] for d in definitions]
 
 
 class Declinable(POS):
