@@ -27,7 +27,15 @@ class TransitivityRestriction(WordRestriction):
         self._t = t
 
     def get_sql_constraint(self) -> str:
-        return 'transitivity = {}'.format(1 if self._t else 0)
+        return 'verb_type = "{}"'.format('transitive' if self._t else 'intransitive')
+
+
+class ModalityRestriction(WordRestriction):
+    def __init__(self, t: bool):
+        self._t = t
+
+    def get_sql_constraint(self) -> str:
+        return 'verb_type {} "auxiliary"'.format('=' if self._t else '!=')
 
 
 class ParticipleRestriction(WordRestriction):
