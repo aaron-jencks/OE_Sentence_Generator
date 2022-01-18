@@ -100,7 +100,7 @@ def convert_word_dictionary_verb(words: List[Tuple[str, Dict[str, Union[List[str
             roots.append((db_string(w['word']), '"verb"', db_string(d),
                           w['word'].startswith('-') or w['word'].endswith('-')))  # Check for affix
 
-        verbs.append((w['word'], False, 0, s == 'transitive'))
+        verbs.append((w['word'], False, 0, db_string(s)))
 
         for conj in w['forms']:
             for c, d in conj.items():
@@ -765,7 +765,7 @@ def insert_verb_conjugations(conjugations: List[Tuple[str, str, str, str, str, s
     cont.insert_record('conjugations', tuples)
 
 
-def insert_verb_transitivities(conjugations: List[Tuple[str, bool, int, bool]]):
+def insert_verb_transitivities(conjugations: List[Tuple[str, bool, int, str]]):
     cont = SQLController.get_instance()
 
     debug('Inserting Verb Conjugation Table')
@@ -790,7 +790,7 @@ def insert_verb_transitivities(conjugations: List[Tuple[str, bool, int, bool]]):
     tuples = []
     for w, stren, cl, trans in conjugations:
         if w in index_dict:
-            tuples.append((index_dict[w], 1 if stren else 0, cl, 1 if trans else 0))
+            tuples.append((index_dict[w], 1 if stren else 0, cl, trans))
         else:
             debug('{} was not found to be a root verb'.format(w))
 
