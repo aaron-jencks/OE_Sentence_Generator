@@ -166,6 +166,15 @@ class Verb(POS):
         self.tense: Tense = Tense.NONE
         self.is_infinitive: bool = False
         self.is_participle: bool = False
+        self.verb_type: str = ''
+
+    @property
+    def is_modal(self) -> bool:
+        return self.verb_type == 'auxiliary'
+
+    @property
+    def is_transitive(self) -> bool:
+        return self.verb_type == 'transitive'
 
     def __repr__(self) -> str:
         if self.is_participle:
