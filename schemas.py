@@ -36,7 +36,7 @@ id integer primary key,
 word integer not null,
 strength bool not null,
 verb_class integer not null,
-transitivity bool not null,
+verb_type text not null,
 foreign key (word) references old_english_words(id)
 );'''
 
@@ -92,7 +92,7 @@ record_typing = {
     'old_english_words': '(name, pos, definition, is_affix)',
     'conjugations': '(word, origin, person, plurality, mood, tense, participle, is_infinitive)',
     'declensions': '(word, origin, plurality, noun_case)',
-    'verbs': '(word, strength, verb_class, transitivity)',
+    'verbs': '(word, strength, verb_class, verb_type)',
     'adjectives': '(origin, word, strength, gender, noun_case, plurality)',
     'adverbs': '(word, comparative, superlative)',
     'pronouns': '(word, origin, plurality, noun_case, gender, person)'
