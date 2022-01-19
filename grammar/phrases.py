@@ -1,4 +1,4 @@
-from grammar.pos import Noun, Verb, Adjective, Adverb
+from grammar.pos import Noun, Verb, Adjective, Adverb, Preposition
 from utils.grammar import WordOrder, Case, Plurality, Person, Tense, Mood
 from grammar.restrictions import TransitivityRestriction, ParticipleRestriction, ModalityRestriction
 
@@ -138,6 +138,22 @@ class IntransitiveVerbPhrase(VerbPhrase):
             phrase = IntransitiveVerbPhrase(main)
 
         return phrase
+
+
+class PrepositionalPhrase(Phrase):
+    def __init__(self, prep: Preposition, np: NounPhrase):
+        self.prep = prep
+        self.np = np
+
+    def __repr__(self):
+        return self.prep.root + ' ' + repr(self.np)
+
+    def meaning(self) -> str:
+        return rng.choice(self.prep.meaning) + ' ' + self.np.meaning()
+
+    @staticmethod
+    def generate_random():
+        return PrepositionalPhrase(Preposition.get_random_word(), NounPhrase.generate_random())
 
 
 class Clause:
