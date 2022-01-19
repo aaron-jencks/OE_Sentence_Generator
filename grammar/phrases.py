@@ -1,6 +1,7 @@
 from grammar.pos import Noun, Verb, Adjective, Adverb, Preposition, Pronoun
 from utils.grammar import WordOrder, Case, Plurality, Person, Tense, Mood
-from grammar.restrictions import TransitivityRestriction, ParticipleRestriction, ModalityRestriction
+from grammar.restrictions import TransitivityRestriction, ParticipleRestriction, ModalityRestriction, CaseRestriction, \
+    WordRestriction
 
 import random as rng
 from typing import List, Union
@@ -43,9 +44,15 @@ class NounPhrase(Phrase):
     def meaning(self):
         return rng.choice(self.noun.meaning)
 
+    def set_case(self, c: Case):
+        self.noun.case = c
+
+    def set_plurality(self, p: Plurality):
+        self.noun.plurality = p
+
     @staticmethod
-    def generate_random():
-        return NounPhrase(Noun.get_random_word())
+    def generate_random(restrictions: List[WordRestriction] = None):
+        return NounPhrase(Noun.get_random_word(restrictions))
 
 
 class VerbPhrase(Phrase):
@@ -73,7 +80,7 @@ class VerbPhrase(Phrase):
         return result
 
     @staticmethod
-    def generate_random():
+    def generate_random(restrictions: List[WordRestriction] = None):
         # VP: (Modal Main Participle*|Main Participle*|Main)
         # Modal always comes first, Main verb + participle is auxiliary
         version = rng.randint(1, 3)
@@ -82,6 +89,8 @@ class VerbPhrase(Phrase):
 
         if version < 3:
             participle = Verb.get_random_word([ParticipleRestriction(True)])
+            participle.is_participle = True
+            participle.tense = Tense.random()
 
             if version == 1:
                 modal = Verb.get_random_word([ModalityRestriction(True)])
@@ -181,7 +190,27 @@ class RelativeClause(Phrase):
     @staticmethod
     def generate_random():
         # TODO VP needs to be conjugated whether the NP is the subject or if the Pronoun is the subject
-        return RelativeClause(Pronoun.get_random_word(), VerbPhrase.generate_random(), NounPhrase.generate_random())
+        # Pronoun is S, O
+        # Noun is S, O
+
+        conjugation_type = rng.randint(0, 1)
+
+        vp = VerbPhrase.generate_random()
+
+        if conjugation_type == 1:
+            pron = Pronoun.get_random_word([CaseRestriction(Case.NOMINATIVE)])
+            np = NounPhrase.generate_random([CaseRestriction(Case.ACCUSATIVE)])
+
+            pron.case = Case.NOMINATIVE
+            np.set_case(Case.ACCUSATIVE)
+        else:
+            pron = Pronoun.get_random_word([CaseRestriction(Case.ACCUSATIVE)])
+            np = NounPhrase.generate_random([CaseRestriction(Case.NOMINATIVE)])
+
+            pron.case = Case.ACCUSATIVE
+            np.set_case(Case.NOMINATIVE)
+
+        return RelativeClause(pron, vp, np)
 
 
 class Clause:
