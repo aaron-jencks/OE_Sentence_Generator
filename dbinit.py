@@ -196,7 +196,7 @@ def convert_word_dictionary_prepositions(words: List[Tuple[str, Dict[str, Union[
     debug('Converting Preposition dictionaries')
     roots = []
 
-    for s, w in tqdm(words):
+    for w in tqdm(words):
         for d in w['definitions']:
             roots.append((db_string(w['word']), '"preposition"', db_string(d),
                           w['word'].startswith('-') or w['word'].endswith('-')))  # Check for affix
