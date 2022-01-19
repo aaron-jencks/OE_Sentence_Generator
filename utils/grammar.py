@@ -1,6 +1,7 @@
 from typing import List
 import enum
 import re
+import random as rng
 
 # AdjP: (Adj|Participle V)
 # NP: (AdjP NP|Det AdjP NP|Det NP|N|Gerund/Participle V|NP Conj NP|NP PrepP|NP Relative Clause)  Determiner always comes firt
@@ -51,11 +52,19 @@ class Case(enum.Enum):
     INSTRUMENTAL = 5
     ROOT = 6
 
+    @staticmethod
+    def random(root: bool = False):
+        return Gender(rng.randint(0, 6 if root else 5))
+
 
 class Plurality(enum.Enum):
     SINGULAR = 0
     PLURAL = 1
     NONE = 2
+
+    @staticmethod
+    def random(none: bool = False):
+        return Gender(rng.randint(0, 2 if none else 1))
 
 
 class Person(enum.Enum):
@@ -64,11 +73,19 @@ class Person(enum.Enum):
     THIRD = 2
     NONE = 3
 
+    @staticmethod
+    def random(none: bool = False):
+        return Gender(rng.randint(0, 3 if none else 2))
+
 
 class Tense(enum.Enum):
     PAST = 0
     PRESENT = 1
     NONE = 2
+
+    @staticmethod
+    def random(none: bool = False):
+        return Gender(rng.randint(0, 2 if none else 1))
 
 
 class Mood(enum.Enum):
@@ -77,8 +94,12 @@ class Mood(enum.Enum):
     SUBJUNCTIVE = 2
     PARTICIPLE = 3
     INFINITIVE = 4
-    ROOT = 6
-    NONE = 5
+    ROOT = 5
+    NONE = 6
+
+    @staticmethod
+    def random(none: bool = False):
+        return Gender(rng.randint(0, 6 if none else 5))
 
 
 class Gender(enum.Enum):
@@ -86,6 +107,10 @@ class Gender(enum.Enum):
     FEMININE = 1
     NEUTER = 2
     NONE = 3
+
+    @staticmethod
+    def random(none: bool = False):
+        return Gender(rng.randint(0, 3 if none else 2))
 
 
 class WordOrder(enum.Enum):
@@ -95,3 +120,7 @@ class WordOrder(enum.Enum):
     VSO = 3
     VOS = 4
     OVS = 5
+
+    @staticmethod
+    def random():
+        return WordOrder(rng.randint(0, 5))
