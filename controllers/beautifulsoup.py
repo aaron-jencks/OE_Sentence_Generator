@@ -265,6 +265,11 @@ class SoupAdverbScraper(OEWordScraper):
         super().__init__(url, r'Adverb.*', all_pages, initial_table_set)
 
 
+class SoupPrepositionScraper(OEWordScraper):
+    def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
+        super().__init__(url, r'Preposition.*', all_pages, initial_table_set)
+
+
 class SoupAdjectiveScraper(OETableWordScraper):
     def __init__(self, url: str, all_pages: bool = True, initial_table_set: set = None):
         super().__init__(url, r'Adjective.*', r'(Conjugation|Declension).*', [], all_pages, initial_table_set)

@@ -38,5 +38,8 @@ soup_targets = {
     },
     'pronouns': {
         'all': 'Category:Old_English_pronouns'
+    },
+    'prepositions': {
+        'all': 'Category:Old_English_prepositions'
     }
 }

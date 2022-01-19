@@ -82,7 +82,7 @@ class VerbPhrase(Phrase):
 
         if version < 3:
             participle = Verb.get_random_word([ParticipleRestriction(True)])
-            
+
             if version == 1:
                 modal = Verb.get_random_word([ModalityRestriction(True)])
                 phrase = VerbPhrase(main, modal, participle)
@@ -120,7 +120,24 @@ class TransitiveVerbPhrase(VerbPhrase):
 class IntransitiveVerbPhrase(VerbPhrase):
     @staticmethod
     def generate_random():
-        return IntransitiveVerbPhrase(Verb.get_random_word([TransitivityRestriction(False)]))
+        # VP: (Modal Main Participle*|Main Participle*|Main)
+        # Modal always comes first, Main verb + participle is auxiliary
+        version = rng.randint(1, 3)
+
+        main = Verb.get_random_word()
+
+        if version < 3:
+            participle = Verb.get_random_word([ParticipleRestriction(True)])
+
+            if version == 1:
+                modal = Verb.get_random_word([ModalityRestriction(True)])
+                phrase = IntransitiveVerbPhrase(main, modal, participle)
+            else:
+                phrase = IntransitiveVerbPhrase(main, participle=participle)
+        else:
+            phrase = IntransitiveVerbPhrase(main)
+
+        return phrase
 
 
 class Clause:
