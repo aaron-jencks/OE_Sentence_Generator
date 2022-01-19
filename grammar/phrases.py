@@ -196,6 +196,7 @@ class RelativeClause(Phrase):
         conjugation_type = rng.randint(0, 1)
 
         vp = VerbPhrase.generate_random()
+        vp.main.mood = Mood.random()
 
         if conjugation_type == 1:
             pron = Pronoun.get_random_word([CaseRestriction(Case.NOMINATIVE)])
@@ -203,12 +204,20 @@ class RelativeClause(Phrase):
 
             pron.case = Case.NOMINATIVE
             np.set_case(Case.ACCUSATIVE)
+            np.set_plurality(Plurality.random())
+
+            vp.main.person = Person.THIRD  # TODO this could also be 1st or 2nd, it needs to match the pronoun
+            vp.main.plurality = np.noun.plurality
         else:
             pron = Pronoun.get_random_word([CaseRestriction(Case.ACCUSATIVE)])
             np = NounPhrase.generate_random([CaseRestriction(Case.NOMINATIVE)])
 
             pron.case = Case.ACCUSATIVE
             np.set_case(Case.NOMINATIVE)
+            np.set_plurality(Plurality.random())
+
+            vp.main.person = Person.THIRD  # TODO Might also be 1st
+            vp.main.plurality = np.noun.plurality
 
         return RelativeClause(pron, vp, np)
 
