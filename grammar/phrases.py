@@ -1,4 +1,4 @@
-from grammar.pos import Noun, Verb, Adjective, Adverb, Preposition
+from grammar.pos import Noun, Verb, Adjective, Adverb, Preposition, Pronoun
 from utils.grammar import WordOrder, Case, Plurality, Person, Tense, Mood
 from grammar.restrictions import TransitivityRestriction, ParticipleRestriction, ModalityRestriction
 
@@ -156,6 +156,34 @@ class PrepositionalPhrase(Phrase):
         return PrepositionalPhrase(Preposition.get_random_word(), NounPhrase.generate_random())
 
 
+class RelativeClause(Phrase):
+    def __init__(self, pron: Pronoun, verb: VerbPhrase, noun: NounPhrase):
+        self.pronoun = pron
+        self.verb = verb
+        self.noun = noun
+        self.order = rng.randint(0, 1)
+
+    def reset_word_order(self):
+        self.order = rng.randint(0, 1)
+
+    def get_word_order(self) -> List[Union[Pronoun, Phrase]]:
+        chunks = [self.pronoun]
+        if self.order == 1:
+            chunks += [self.verb, self.noun]
+        else:
+            chunks += [self.noun, self.verb]
+        return chunks
+
+    def __repr__(self):
+        chunks = self.get_word_order()
+        return chunks[0].root + ' ' + ' '.join(map(repr, [c for c in chunks if isinstance(c, Phrase)]))
+
+    @staticmethod
+    def generate_random():
+        # TODO VP needs to be conjugated whether the NP is the subject or if the Pronoun is the subject
+        return RelativeClause(Pronoun.get_random_word(), VerbPhrase.generate_random(), NounPhrase.generate_random())
+
+
 class Clause:
     def __init__(self, subject: NounPhrase, verb: VerbPhrase, obj: NounPhrase):
         self.subject = subject
@@ -195,10 +223,10 @@ class Clause:
         if rng.randint(0, 1) == 1:
             verb = TransitiveVerbPhrase.generate_random()
 
-        verb.verb.plurality = sub.noun.plurality
-        verb.verb.mood = Mood.INDICATIVE
-        verb.verb.person = Person.THIRD
-        verb.verb.tense = Tense(rng.randint(0, 1))
+        verb.main.plurality = sub.noun.plurality
+        verb.main.mood = Mood.INDICATIVE
+        verb.main.person = Person.THIRD
+        verb.main.tense = Tense(rng.randint(0, 1))
 
         obj = NounPhrase.generate_random()
         obj.noun.case = Case.ACCUSATIVE
