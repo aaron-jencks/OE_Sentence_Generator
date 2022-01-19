@@ -179,6 +179,31 @@ def convert_word_dictionary_adverb(words: List[Tuple[str, Dict[str, Union[List[s
     return {'old_english_words': roots, 'adverbs': adverb_entries}
 
 
+def convert_word_dictionary_prepositions(words: List[Tuple[str, Dict[str, Union[List[str],
+                                                                                List[Dict[str,
+                                                                                          Union[str, Dict[str, str]]]],
+                                                                     str]]]]) -> Dict[str, List[tuple]]:
+    """
+    :param words: List of dictionaries to be converted
+    {
+    'word': word,
+    'definitions': List of definitions,
+    'forms': A List of conjugation dictionaries
+    }
+    :return: Returns a dictionary with each key corresponding to a table and it's value a list of data to insert
+    """
+
+    debug('Converting Preposition dictionaries')
+    roots = []
+
+    for s, w in tqdm(words):
+        for d in w['definitions']:
+            roots.append((db_string(w['word']), '"preposition"', db_string(d),
+                          w['word'].startswith('-') or w['word'].endswith('-')))  # Check for affix
+
+    return {'old_english_words': roots}
+
+
 def convert_word_dictionary_adjectives_generic(words: List[Dict[str, Union[List[str], List[Dict[str,
                                                                                                 Union[str,
                                                                                                       Dict[str, str]]]],
@@ -305,7 +330,8 @@ conversion_dict = {
     'adverbs': convert_word_dictionary_adverb,
     'adjectives': convert_word_dictionary_adjectives,
     'determiners': convert_word_dictionary_determiners,
-    'pronouns': convert_word_dictionary_pronoun
+    'pronouns': convert_word_dictionary_pronoun,
+    'prepositions': convert_word_dictionary_prepositions
 }
 
 
@@ -313,7 +339,7 @@ def initialize_database_scraper():
     from soup_targets import soup_targets, wiktionary_root
     from controllers.sql import SQLController
     from controllers.beautifulsoup import SoupStemScraper, SoupVerbClassScraper, \
-        SoupAdverbScraper, SoupAdjectiveScraper, SoupDeterminerScraper, SoupPronounScraper
+        SoupAdverbScraper, SoupAdjectiveScraper, SoupDeterminerScraper, SoupPronounScraper, SoupPrepositionScraper
 
     cont = SQLController.get_instance()
     cont.reset_database()
@@ -359,6 +385,9 @@ def initialize_database_scraper():
                     elif t == 'pronouns':
                         scraper = SoupPronounScraper(wiktionary_root + '/wiki/' + gurl, s)
                         words += scraper.find_words()
+                    elif t == 'prepositions':
+                        scraper = SoupPrepositionScraper(wiktionary_root + '/wiki/' + gurl, s)
+                        words += scraper.find_words()
             else:
                 scraper = None
                 if t == 'nouns':
@@ -382,6 +411,9 @@ def initialize_database_scraper():
                     words += scraper.find_words()
                 elif t == 'pronouns':
                     scraper = SoupPronounScraper(wiktionary_root + '/wiki/' + url, s)
+                    words += scraper.find_words()
+                elif t == 'prepositions':
+                    scraper = SoupPrepositionScraper(wiktionary_root + '/wiki/' + url, s)
                     words += scraper.find_words()
             debug('Found {} words so far'.format(len(words)))
 
