@@ -335,3 +335,14 @@ class Determiner(Declinable):
             possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "determiner" and is_affix = 0')
 
         return Adjective(rng.choice(possible_words)[0])
+
+
+class Preposition(POS):
+    def __init__(self, root: str):
+        super().__init__(root, 'preposition')
+
+    @staticmethod
+    def get_random_word():
+        cont = SQLController.get_instance()
+        possible_words = cont.select_conditional('old_english_words', 'name', 'pos = "preposition" and is_affix = 0')
+        return Preposition(rng.choice(possible_words)[0])
